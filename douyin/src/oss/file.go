@@ -54,7 +54,7 @@ func fileUpLoad(fileName string, bucket *oss.Bucket) (string, error) {
 		return "", err
 	}
 	// 返回url
-	return fmt.Sprintf("%s/%s", Endpoint, urlPath), nil
+	return fmt.Sprintf("%s%s", UrlPathPrefix, urlPath), nil
 }
 
 // checkLocalFile 检查本地文件是否正常
