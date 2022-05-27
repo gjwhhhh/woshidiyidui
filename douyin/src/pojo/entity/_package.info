@@ -1,0 +1,3 @@
+package entity
+
+// 用于定义数据层的对象

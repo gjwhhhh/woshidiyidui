@@ -16,7 +16,7 @@ func TestFileUpLoad(t *testing.T) {
 	monkey.Patch(os.Remove, func(name string) error {
 		return nil
 	})
-	// 写在打桩
+	// 卸载打桩
 	defer monkey.UnpatchAll()
 	// 控制台打印文件路径
 	println(FileUpLoad("test.txt"))
