@@ -1,0 +1,344 @@
+{
+	"info": {
+		"_postman_id": "37df23ec-629f-47fd-871f-6de95ff57fba",
+		"name": "字节青训抖音项目",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "指定ip和port",
+			"item": [
+				{
+					"name": "1.视频流接口",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/feed",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"feed"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.用户信息",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/user?user_id=1&token=zhangleidouyin",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"user"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								},
+								{
+									"key": "token",
+									"value": "zhangleidouyin"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.用户注册",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/user/register?username=wuyou&password=wuyou",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"user",
+								"register"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "wuyou"
+								},
+								{
+									"key": "password",
+									"value": "wuyou"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.用户登录",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/user/login?username=wuyou&password=wuyou",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"user",
+								"login"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "wuyou"
+								},
+								{
+									"key": "password",
+									"value": "wuyou"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.视频投稿",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "token",
+									"value": "zhangleidouyin",
+									"type": "text"
+								},
+								{
+									"key": "title",
+									"value": "视频标题",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{NAP}}/douyin/publish/action",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"publish",
+								"action"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6.发布列表",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/publish/list",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"publish",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7.视频点赞",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/favorite/action",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"favorite",
+								"action"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8.点赞列表",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/favorite/list/",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"favorite",
+								"list",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "9.视频评论",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/comment/action",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"comment",
+								"action"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10.评论列表",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/comment/list",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"comment",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "11.关系操作",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/relation/action",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"relation",
+								"action"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "12.关注列表",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/relation/follow/list",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"relation",
+								"follow",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "13.粉丝列表",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{NAP}}/douyin/relation/follower/list",
+							"protocol": "http",
+							"host": [
+								"{{NAP}}"
+							],
+							"path": [
+								"douyin",
+								"relation",
+								"follower",
+								"list"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.collectionVariables.set(\"NAP\", \"127.0.0.1:8080\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "NAP",
+			"value": ""
+		}
+	]
+}
