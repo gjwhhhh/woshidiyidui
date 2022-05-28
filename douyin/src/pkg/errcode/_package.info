@@ -1,0 +1,3 @@
+package errcode
+
+// 用于定义错误码相关

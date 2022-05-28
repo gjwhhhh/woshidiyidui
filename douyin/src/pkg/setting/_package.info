@@ -1,0 +1,3 @@
+package setting
+
+// 用于定义读取配置的model类，以及读取的方法
