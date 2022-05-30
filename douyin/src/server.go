@@ -1,22 +1,29 @@
 package main
 
 import (
+	"douyin/src/api"
 	"douyin/src/global"
 	"douyin/src/pkg/setting"
+	"douyin/src/pojo/entity"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"time"
-
-	"douyin/src/api"
 )
 
+//项目启动会自动调用此初始化函数
 func init() {
 	err := setupSetting()
 	if err != nil {
 		log.Fatalf("init.setupSetting err: %v", err)
 	}
+	err = setupDBEngine()
+	if err != nil {
+		log.Fatalf("init.setupDBEngine err: %v", err)
+	}
 }
+
+//初始化配置文件读取
 func setupSetting() error {
 	setting, err := setting.NewSetting()
 	if err != nil {
@@ -39,6 +46,18 @@ func setupSetting() error {
 	global.ServerSetting.WriteTimeout *= time.Second
 	return nil
 }
+
+//初始化数据库连接
+func setupDBEngine() error {
+	var err error
+	global.DBEngine, err = entity.NewDBEngine(global.DatabaseSetting)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	gin.SetMode(global.ServerSetting.RunMode)
 	router := gin.Default()
