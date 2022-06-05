@@ -62,7 +62,7 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://{{NAP}}/user/register?username=wuyou&password=wuyou",
+							"raw": "http://{{NAP}}/douyin/user/register?username=wuyou&password=wuyou",
 							"protocol": "http",
 							"host": [
 								"{{NAP}}"
@@ -91,7 +91,7 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://{{NAP}}/user/login?username=wuyou&password=wuyou",
+							"raw": "http://{{NAP}}/douyin/user/login?username=wuyou&password=wuyou",
 							"protocol": "http",
 							"host": [
 								"{{NAP}}"
