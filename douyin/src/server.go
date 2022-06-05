@@ -49,6 +49,8 @@ func setupSetting() error {
 
 	global.ServerSetting.ReadTimeout *= time.Second
 	global.ServerSetting.WriteTimeout *= time.Second
+	//初始化JWT
+	global.JwtSecret = []byte(global.JWTSetting.Secret)
 	return nil
 }
 
