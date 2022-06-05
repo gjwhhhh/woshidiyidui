@@ -18,11 +18,8 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-var jwtSecret = global.JwtSecret
-
 // GenerateToken 根据用户的用户名和密码产生token
 func GenerateToken(username, password string) (string, error) {
-	// 指定加密密钥
 
 	//设置token有效时间
 	nowTime := time.Now()
@@ -41,12 +38,14 @@ func GenerateToken(username, password string) (string, error) {
 
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	//该方法内部生成签名字符串，再用于获取完整、已签名的token
-	token, err := tokenClaims.SignedString(jwtSecret)
+	token, err := tokenClaims.SignedString(global.JWTSecret)
 	return token, err
 }
 
 // ParseToken 根据传入的token值获取到Claims对象信息，（进而获取其中的用户名和密码）
 func ParseToken(token string) (*Claims, error) {
+	// 指定加密密钥
+	var jwtSecret = []byte(global.JWTSetting.Secret)
 
 	//用于解析鉴权的声明，方法内部主要是具体的解码和校验的过程，最终返回*Token
 	tokenClaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
