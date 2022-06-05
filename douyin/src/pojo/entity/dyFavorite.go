@@ -9,5 +9,5 @@ type DyFavorite struct {
 }
 
 func (m *DyFavorite) TableName() string {
-	return "`dy_favorite`"
+	return "dy_favorite"
 }

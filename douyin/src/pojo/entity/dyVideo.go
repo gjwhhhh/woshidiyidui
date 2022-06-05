@@ -19,5 +19,5 @@ type DyVideo struct {
 }
 
 func (m *DyVideo) TableName() string {
-	return "`dy_video`"
+	return "dy_video"
 }

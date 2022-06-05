@@ -16,5 +16,5 @@ type DyComment struct {
 }
 
 func (m *DyComment) TableName() string {
-	return "`dy_comment`"
+	return "dy_comment"
 }

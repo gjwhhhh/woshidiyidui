@@ -15,5 +15,5 @@ type DyRelation struct {
 }
 
 func (m *DyRelation) TableName() string {
-	return "`dy_relation`"
+	return "dy_relation"
 }
