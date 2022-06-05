@@ -21,3 +21,5 @@ Database:
   ParseTime: True
   MaxIdleConns: 10
   MaxOpenConns: 30
+JWT:
+  Secret: 666666
