@@ -1,12 +1,12 @@
 package oss
 
 import (
-	"douyin/src/util"
+	"bufio"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -14,18 +14,6 @@ import (
 
 // UploadVideo 上传视频，返回视频url和封面url
 func UploadVideo(fileName string) (string, string, error) {
-	// 截取图片保存到本地
-	split := strings.Split(fileName, ".")
-	coverName := fmt.Sprintf("%s.jpg", split[0])
-	// 生成封面
-	err := util.GetSnapshot(
-		fmt.Sprintf("%s%s", LocalFilePathPrefix, fileName),
-		fmt.Sprintf("%s%s", LocalFilePathPrefix, coverName),
-		1)
-	if err != nil {
-		return "", "", errors.New(fmt.Sprintf("video capture cover error, %s", err.Error()))
-	}
-
 	// TODO 使用协程优化
 	// 上传视频到云端
 	videoUrl, err := FileUpLoad(fileName)
@@ -33,12 +21,32 @@ func UploadVideo(fileName string) (string, string, error) {
 		return "", "", err
 	}
 	// 上传封面到云端
-	coverUrl, err := FileUpLoad(coverName)
+	coverUrl := getUrlPath(fmt.Sprintf("%s.jpg", strings.Split(fileName, ".")[0]))
+	err = NetFileDump(fmt.Sprintf("%s?x-oss-process=video/snapshot,t_1,f_jpg,w_0,h_0,m_fast", videoUrl), coverUrl)
 	if err != nil {
 		return "", "", err
 	}
-	log.Println("video upload success, videoUrl:{}, coverUrl:{}", videoUrl, coverUrl)
-	return videoUrl, coverUrl, nil
+	return videoUrl, fmt.Sprintf("%s%s", UrlPathPrefix, coverUrl), nil
+}
+
+// NetFileDump 网络文件转存
+func NetFileDump(srcUrl, dstUrl string) error {
+	defaultBucketInstance, err := GetDefaultBucketInstance()
+	if err != nil {
+		return err
+	}
+	res, err := http.Get(srcUrl)
+	if err != nil {
+		return err
+	}
+	// defer后的为延时操作，通常用来释放相关变量
+	defer res.Body.Close()
+	reader := bufio.NewReader(res.Body)
+	err = defaultBucketInstance.PutObject(dstUrl, reader)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // FileUpLoad 上传文件到默认bucket

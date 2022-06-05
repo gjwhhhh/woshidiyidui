@@ -11,7 +11,7 @@ import (
 
 // GetSnapshot 根据视频生成封面cover存储到本地
 // frameNum 第几帧
-func GetSnapshot(videoPath, snapshotPath string, frameNum int) (err error) {
+func GetSnapshot(videoPath, coverPath string, frameNum int) (err error) {
 	// 读取本地文件流
 	buf := bytes.NewBuffer(nil)
 	err = ffmpeg.Input(videoPath).
@@ -26,21 +26,21 @@ func GetSnapshot(videoPath, snapshotPath string, frameNum int) (err error) {
 			os.Stdout).
 		Run()
 	if err != nil {
-		log.Fatal("read local file err {}", err)
+		log.Fatal("read local file err ,", err)
 		return err
 	}
 
 	// 将视频帧转换为cover
 	img, err := imaging.Decode(buf)
 	if err != nil {
-		log.Fatal("decode buffer as cover err {}", err)
+		log.Fatal("decode buffer as cover err ,", err)
 		return err
 	}
 
 	// 将cover存储到本地
-	err = imaging.Save(img, snapshotPath)
+	err = imaging.Save(img, coverPath)
 	if err != nil {
-		log.Fatal("cover store local err {}", err)
+		log.Fatal("cover store local err ,", err)
 		return err
 	}
 	return nil

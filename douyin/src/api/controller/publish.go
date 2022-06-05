@@ -89,7 +89,7 @@ func Publish(c *gin.Context) {
 
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
-		StatusMsg:  filename + " uploaded successfully",
+		StatusMsg:  title + " uploaded successfully",
 	})
 }
 
