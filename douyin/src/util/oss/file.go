@@ -1,7 +1,9 @@
 package oss
 
 import (
+	"douyin/src/util"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"log"
@@ -9,6 +11,35 @@ import (
 	"strings"
 	"time"
 )
+
+// UploadVideo 上传视频，返回视频url和封面url
+func UploadVideo(fileName string) (string, string, error) {
+	// 截取图片保存到本地
+	split := strings.Split(fileName, ".")
+	coverName := fmt.Sprintf("%s.jpg", split[0])
+	// 生成封面
+	err := util.GetSnapshot(
+		fmt.Sprintf("%s%s", LocalFilePathPrefix, fileName),
+		fmt.Sprintf("%s%s", LocalFilePathPrefix, coverName),
+		1)
+	if err != nil {
+		return "", "", errors.New(fmt.Sprintf("video capture cover error, %s", err.Error()))
+	}
+
+	// TODO 使用协程优化
+	// 上传视频到云端
+	videoUrl, err := FileUpLoad(fileName)
+	if err != nil {
+		return "", "", err
+	}
+	// 上传封面到云端
+	coverUrl, err := FileUpLoad(coverName)
+	if err != nil {
+		return "", "", err
+	}
+	log.Println("video upload success, videoUrl:{}, coverUrl:{}", videoUrl, coverUrl)
+	return videoUrl, coverUrl, nil
+}
 
 // FileUpLoad 上传文件到默认bucket
 func FileUpLoad(fileName string) (string, error) {

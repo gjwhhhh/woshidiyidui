@@ -11,5 +11,5 @@ var (
 	DatabaseSetting *setting.DatabaseSettingS
 	JWTSetting      *setting.JWTSettingS
 	DBEngine        *gorm.DB
-	JwtSecret       []byte
+	JWTSecret       []byte
 )

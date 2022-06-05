@@ -18,3 +18,8 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 func GetVideoTimeById(userId int64) (int64, error) {
 	return 0, nil
 }
+
+// AddVideo 用户新增视频
+func AddVideo(userId int64, videoUrl, coverUrl, title string) error {
+	return nil
+}
