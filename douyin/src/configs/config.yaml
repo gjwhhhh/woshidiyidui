@@ -12,10 +12,10 @@ App:
   LogFileExt: .log
 Database:
   DBType: mysql
-  Username: root  # 填写你的数据库账号
-  Password: xxxxx  # 填写你的数据库密码
+  Username: wuyou  # 填写你的数据库账号
+  Password: root  # 填写你的数据库密码
   Host: 127.0.0.1:3306
-  DBName: douyin_service
+  DBName: douyin_servicewq
   TablePrefix: douyin_
   Charset: utf8
   ParseTime: True

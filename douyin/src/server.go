@@ -5,7 +5,6 @@ import (
 	"douyin/src/global"
 	"douyin/src/pkg/setting"
 	"douyin/src/pojo/entity"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -67,7 +66,6 @@ func setupDBEngine() error {
 func main() {
 	gin.SetMode(global.ServerSetting.RunMode)
 	router := gin.Default()
-	fmt.Println(global.JWTSetting.Secret)
 	api.InitRouter(router)
 
 	//r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")

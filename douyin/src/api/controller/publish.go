@@ -18,6 +18,7 @@ type VideoListResponse struct {
 
 // Publish 用户上传文件
 func Publish(c *gin.Context) {
+	println(c.Request.FormValue("token"))
 	token := c.PostForm("token")
 
 	// 校验token
@@ -44,7 +45,7 @@ func Publish(c *gin.Context) {
 		return
 	}
 
-	data, err := c.FormFile("data")
+	file, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
@@ -54,11 +55,11 @@ func Publish(c *gin.Context) {
 	}
 
 	// 格式化文件名
-	filename := fmt.Sprintf("%d_%s", userId, filepath.Base(data.Filename))
+	filename := fmt.Sprintf("%d_%s", userId, filepath.Base(file.Filename))
 	// 指定存储本地文件的全路径
 	localFilePath := filepath.Join(oss.LocalFilePathPrefix, filename)
 	// 将文件存储到本地
-	if err := c.SaveUploadedFile(data, localFilePath); err != nil {
+	if err := c.SaveUploadedFile(file, localFilePath); err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("File stored on server failed，%s", err.Error()),
@@ -76,7 +77,7 @@ func Publish(c *gin.Context) {
 		return
 	}
 
-	title := c.Query("title")
+	title := c.PostForm("title")
 	err = service.PublishVideo(userId, videoUrl, coverUrl, title)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
