@@ -28,6 +28,7 @@ type DatabaseSettingS struct {
 	ParseTime    bool
 	MaxIdleConns int
 	MaxOpenConns int
+	FeedPageSize int
 }
 
 type JWTSettingS struct {
