@@ -6,12 +6,12 @@ import "douyin/src/pojo/vo"
 
 // BatchVideoByTimeAndUId 通过时间和用户id获取视频流，需要指定用户是否点赞
 func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video, error) {
-	return nil, nil
+	return make([]vo.Video, 0), nil
 }
 
 // BatchVideoByTime 通过时间获取视频流，不需要指定用户是否点赞
 func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
-	return nil, nil
+	return make([]vo.Video, 0), nil
 }
 
 // GetVideoTimeById 通过视频id获取视频发布时间

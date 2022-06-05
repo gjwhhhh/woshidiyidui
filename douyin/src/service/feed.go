@@ -19,11 +19,15 @@ func Feed(latestTime, userId int64) (feed []vo.Video, nextTime int64, err error)
 	}
 
 	// 获取nextTime
-	nextTime, err = dao.GetVideoTimeById(feed[len(feed)-1].Id)
+	len := len(feed)
+	if len == 0 {
+		return feed, latestTime, nil
+	}
+
+	nextTime, err = dao.GetVideoTimeById(feed[len-1].Id)
 	if err != nil {
 		return nil, 0, err
 	}
-
 	return feed, nextTime, nil
 }
 
