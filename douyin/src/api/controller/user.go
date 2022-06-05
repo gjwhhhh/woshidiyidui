@@ -1,25 +1,28 @@
 package controller
 
 import (
+	"douyin/src/service"
+	"douyin/src/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"sync/atomic"
+	"strconv"
 )
 
 // usersLoginInfo use map to store User info, and key is username+password for demo
 // User data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:            1,
-		Name:          "zhanglei",
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      true,
-	},
-}
+//var usersLoginInfo = map[string]User{
+//	"zhangleidouyin": {
+//		Id:            1,
+//		Name:          "zhanglei",
+//		FollowCount:   10,
+//		FollowerCount: 5,
+//		IsFollow:      true,
+//	},
+//}
 
-var userIdSequence = int64(1)
+//var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
 	Response
@@ -32,62 +35,96 @@ type UserResponse struct {
 	User User `json:"User"`
 }
 
+// Register 用户注册
 func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
-
-	if _, exist := usersLoginInfo[token]; exist {
+	// 调用业务注册用户，返回用户id和token
+	userId, token, err := service.Register(username, password)
+	if err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("User register err:%s", err.Error()),
+			},
 		})
-	} else {
-		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
-			Id:   userIdSequence,
-			Name: username,
-		}
-		usersLoginInfo[token] = newUser
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   userIdSequence,
-			Token:    username + password,
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, UserLoginResponse{
+		Response: Response{StatusCode: 0},
+		UserId:   userId,
+		Token:    token,
+	})
 }
 
+// Login 用户登录
 func Login(c *gin.Context) {
+	// 获取参数
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
-
-	if user, exist := usersLoginInfo[token]; exist {
+	// 获取token
+	userId, token, err := service.GetToken(username, password)
+	if err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   user.Id,
-			Token:    token,
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Get token err:%s", err.Error()),
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, UserLoginResponse{
+		Response: Response{StatusCode: 0},
+		UserId:   userId,
+		Token:    token,
+	})
 }
 
+// UserInfo 获取用户信息（可能是当前用户，也可能是其它用户，统一处理）
 func UserInfo(c *gin.Context) {
-	// TODO 使用JWT进行token校验
+	// 获取参数
 	token := c.Query("token")
-
-	if user, exist := usersLoginInfo[token]; exist {
+	userId, err := strconv.Atoi(c.Query("user_id"))
+	if err != nil {
 		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 0},
-			User:     user,
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Illegal params, userId parse err:%s", err.Error()),
+			},
 		})
-	} else {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-		})
+		return
 	}
+
+	// 校验token
+	claims, err := util.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
+			},
+		})
+		return
+	}
+
+	// 调用业务获取用户信息vo
+	userInfo, err := service.GetUserInfo(claims.Username, claims.Password, int64(userId))
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Get userInfo err:%s", err.Error()),
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Response: Response{StatusCode: 0},
+		User:     userInfo,
+	})
 }
