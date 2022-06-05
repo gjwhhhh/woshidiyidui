@@ -68,10 +68,10 @@ func checkLocalFile(localPath string) error {
 // getUrlPath 根据文件名设置urlPath
 func getUrlPath(fileName string) string {
 	builder := &strings.Builder{}
-	// 设置为时间文件夹
-	builder.WriteString(fmt.Sprintf("%d/%d/%d/", time.Now().Year(), time.Now().Month(), time.Now().Day()))
 	// 设置文件名 BASE
 	split := strings.Split(fileName, ".")
+	// 设置为时间文件夹
+	builder.WriteString(fmt.Sprintf("%d/%d/%d/%s/", time.Now().Year(), time.Now().Month(), time.Now().Day(), split[1]))
 	// 文件url进行base64编码
 	builder.WriteString(base64.URLEncoding.EncodeToString([]byte(split[0])))
 	builder.WriteByte('.')
