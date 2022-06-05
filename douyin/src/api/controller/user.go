@@ -12,17 +12,17 @@ import (
 // usersLoginInfo use map to store User info, and key is username+password for demo
 // User data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-//var usersLoginInfo = map[string]User{
-//	"zhangleidouyin": {
-//		Id:            1,
-//		Name:          "zhanglei",
-//		FollowCount:   10,
-//		FollowerCount: 5,
-//		IsFollow:      true,
-//	},
-//}
+var usersLoginInfo = map[string]User{
+	"zhangleidouyin": {
+		Id:            1,
+		Name:          "zhanglei",
+		FollowCount:   10,
+		FollowerCount: 5,
+		IsFollow:      true,
+	},
+}
 
-//var userIdSequence = int64(1)
+var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
 	Response
@@ -88,7 +88,7 @@ func Login(c *gin.Context) {
 func UserInfo(c *gin.Context) {
 	// 获取参数
 	token := c.Query("token")
-	userId, err := strconv.Atoi(c.Query("user_id"))
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{
@@ -112,7 +112,7 @@ func UserInfo(c *gin.Context) {
 	}
 
 	// 调用业务获取用户信息vo
-	userInfo, err := service.GetUserInfo(claims.Username, claims.Password, int64(userId))
+	userInfo, err := service.GetUserInfo(claims.Username, claims.Password, userId)
 	if err != nil {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{
