@@ -112,11 +112,9 @@ func PublishList(c *gin.Context) {
 	// 校验token
 	claims, err := util.ParseToken(token)
 	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
-			},
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
 		})
 		return
 	}
