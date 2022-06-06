@@ -2,6 +2,7 @@ package dao
 
 import (
 	"douyin/src/global"
+	"douyin/src/pkg/errcode"
 	"douyin/src/pojo/vo"
 	"time"
 )
@@ -48,7 +49,7 @@ loop:
 		default:
 			select {
 			case <-timer.C:
-				return nil, err
+				return videos, errcode.TimeOutFail
 			default:
 				continue
 			}

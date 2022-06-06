@@ -16,4 +16,5 @@ var (
 	UnLikeFail                = NewError(10000009, "取消点赞失败")
 	AddCommentFail            = NewError(10000010, "新增评论失败")
 	DeleteCommentFail         = NewError(10000011, "删除评论失败")
+	TimeOutFail               = NewError(10000012, "系统超时")
 )
