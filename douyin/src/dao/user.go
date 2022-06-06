@@ -23,15 +23,15 @@ func IsExist(username, password string) (int64, bool) {
 }
 
 // GetUserInfo 获取当前用户的信息
-func GetUserInfo(curUserId int64) vo.User {
+func GetUserInfo(curUserId int64) *vo.User {
 	var db = global.DBEngine
 	var dyUser entity.DyUser
 	err := db.Where("Id=?", curUserId).Find(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
-		return vo.User{}
+		return nil
 	}
 
-	var voUser = vo.User{
+	var voUser = &vo.User{
 		Id:            dyUser.Id,
 		Name:          dyUser.Username,
 		FollowerCount: int64(dyUser.FollowCount),
@@ -42,13 +42,13 @@ func GetUserInfo(curUserId int64) vo.User {
 
 // GetOtherUserInfo 获取其它用户的信息
 // bool 返回用户是否存在
-func GetOtherUserInfo(curUserId, otherUserId int64) (vo.User, bool) {
+func GetOtherUserInfo(curUserId, otherUserId int64) (*vo.User, bool) {
 	var db = global.DBEngine
 	//获取用户信息
 	var dyUser entity.DyUser
 	err := db.Where("Id=?", otherUserId).Find(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
-		return vo.User{}, false
+		return nil, false
 	}
 	var isFol = false
 	var dyRela entity.DyRelation
@@ -59,7 +59,7 @@ func GetOtherUserInfo(curUserId, otherUserId int64) (vo.User, bool) {
 	} else {
 		isFol = true
 	}
-	var voUser = vo.User{
+	var voUser = &vo.User{
 		Id:            dyUser.Id,
 		Name:          dyUser.Username,
 		FollowerCount: int64(dyUser.FollowCount),

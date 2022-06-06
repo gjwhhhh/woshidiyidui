@@ -77,11 +77,11 @@ func GetToken(username, password string) (int64, string, error) {
 }
 
 // GetUserInfo 获取用户信息
-func GetUserInfo(username, password string, userId int64) (vo.User, error) {
+func GetUserInfo(username, password string, userId int64) (*vo.User, error) {
 	// 判断用户是否存在
 	curUserId, exist := dao.IsExist(username, password)
 	if !exist {
-		return vo.User{}, errors.New("no userInfo corresponding to token")
+		return nil, errors.New("no userInfo corresponding to token")
 	}
 
 	// 获取用户信息
@@ -91,7 +91,7 @@ func GetUserInfo(username, password string, userId int64) (vo.User, error) {
 		// 判断用户是否存在
 		userInfo, exist := dao.GetOtherUserInfo(curUserId, userId)
 		if !exist {
-			return vo.User{}, errors.New("user don't exist")
+			return nil, errors.New("user don't exist")
 		}
 		return userInfo, nil
 	}
