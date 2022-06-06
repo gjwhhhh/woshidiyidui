@@ -37,7 +37,7 @@ func PublishList(username, password string, userId int64) (videos []vo.Video, er
 
 	// 封装作者
 	for _, video := range videos {
-		video.Author = userInfo
+		video.Author = *userInfo
 	}
 	return videos, nil
 }

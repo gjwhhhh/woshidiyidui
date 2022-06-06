@@ -125,6 +125,6 @@ func UserInfo(c *gin.Context) {
 
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
-		User:     userInfo,
+		User:     *userInfo,
 	})
 }
