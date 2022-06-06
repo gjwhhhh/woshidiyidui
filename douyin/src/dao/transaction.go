@@ -87,7 +87,7 @@ func AddComment(videoId, userId int64, commentStr string) (*vo.Comment, error) {
 		Id:         dyComment.Id,
 		Content:    dyComment.Content.String,
 		CreateDate: dyComment.CreateDate.String(),
-		User:       user,
+		User:       *user,
 	}
 	return comment, nil
 }
