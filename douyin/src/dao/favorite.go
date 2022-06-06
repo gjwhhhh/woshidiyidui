@@ -22,7 +22,10 @@ FROM
 	LEFT JOIN dy_video ON dy_favorite.video_id = dy_video.id
 	LEFT JOIN dy_user ON dy_video.user_id = dy_user.id
 WHERE
-	dy_favorite.user_id = ?`
+	dy_favorite.user_id = ? AND
+	dy_favorite.isdelete = 0 AND 
+    dy_user.isdelete = 0
+	`
 
 func FindFavoriteVideoListByUId(uid int64) ([]vo.Video, error) {
 
