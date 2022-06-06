@@ -23,3 +23,13 @@ func GetVideoTimeById(userId int64) (int64, error) {
 func AddVideo(userId int64, videoUrl, coverUrl, title string) error {
 	return nil
 }
+
+// BatchVideoByUId 批量查询视频信息，不需要指定是否点赞
+func BatchVideoByUId(userId int64) ([]vo.Video, error) {
+	return make([]vo.Video, 0), nil
+}
+
+// BatchVideoByUIdAndOtherUId 批量查询otherUId对应视频信息，需要通过curUserId指定是否点赞
+func BatchVideoByUIdAndOtherUId(curUserId, otherUId int64) ([]vo.Video, error) {
+	return make([]vo.Video, 0), nil
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 type VideoListResponse struct {
@@ -18,7 +19,6 @@ type VideoListResponse struct {
 
 // Publish 用户上传文件
 func Publish(c *gin.Context) {
-	println(c.Request.FormValue("token"))
 	token := c.PostForm("token")
 
 	// 校验token
@@ -77,6 +77,7 @@ func Publish(c *gin.Context) {
 		return
 	}
 
+	// 将视频存储z
 	title := c.PostForm("title")
 	err = service.PublishVideo(userId, videoUrl, coverUrl, title)
 	if err != nil {
@@ -95,11 +96,46 @@ func Publish(c *gin.Context) {
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
+	// 获取c
+	token := c.PostForm("token")
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Illegal params, userId parse err:%s", err.Error()),
+			},
+		})
+		return
+	}
+
+	// 校验token
+	claims, err := util.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
+			},
+		})
+		return
+	}
+
+	videos, err := service.PublishList(claims.Username, claims.Password, userId)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Get publish video list err:%s", err.Error()),
+			},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		// TODO 封装视频数据
-		VideoList: DemoVideos,
+		VideoList: videos,
 	})
 }
