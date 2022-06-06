@@ -12,4 +12,5 @@ var (
 	UnauthorizedTokenTimeout  = NewError(10000005, "鉴权失败，Token超时")
 	UnauthorizedTokenGenerate = NewError(10000006, "鉴权失败，Token生产失败")
 	TooManyRequest            = NewError(10000007, "请求过多")
+	LikeFail                  = NewError(10000008, "点赞失败")
 )

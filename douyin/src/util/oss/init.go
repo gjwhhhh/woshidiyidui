@@ -1,8 +1,6 @@
 package oss
 
 import (
-	"fmt"
-	"os"
 	"runtime"
 )
 
@@ -17,8 +15,9 @@ func init() {
 		LocalFilePathPrefix = "/usr/DouYinCache/"
 	case "windows":
 		LocalFilePathPrefix = "C:\\DouYinCache\\"
+	case "darwin":
+		LocalFilePathPrefix = "/Users/weixizi/douyin/"
 	default:
-		fmt.Println("The current server system is not linux or windows, and the startup fails")
-		os.Exit(-1)
+		panic("The current server system is not linux or windows, and the startup fails")
 	}
 }
