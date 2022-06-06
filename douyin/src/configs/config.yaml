@@ -2,8 +2,8 @@
 Server:
   RunMode: debug
   HttpPort: 8080
-  ReadTimeout: 60
-  WriteTimeout: 60
+  ReadTimeout: 6000
+  WriteTimeout: 6000
 App:
   DefaultPageSize: 10
   MaxPageSize: 100
@@ -12,10 +12,10 @@ App:
   LogFileExt: .log
 Database:
   DBType: mysql
-  Username: wuyou  # 填写你的数据库账号
-  Password: root  # 填写你的数据库密码
-  Host: 127.0.0.1:3306
-  DBName: douyin_servicewq
+  Username: root  # 填写你的数据库账号
+  Password: gjw123  # 填写你的数据库密码
+  Host: 124.221.117.154:3306
+  DBName: douyin_service
   TablePrefix: douyin_
   Charset: utf8
   ParseTime: True
