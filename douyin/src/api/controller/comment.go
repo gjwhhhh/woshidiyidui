@@ -56,7 +56,7 @@ func CommentAction(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusMsg:  fmt.Sprintf("Comment err, %s", err.Error())})
 		return
 	}
 
@@ -69,9 +69,43 @@ func CommentAction(c *gin.Context) {
 
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
+	// 参数校验
+	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  "Illegal params, parse err"})
+		return
+	}
+	// 校验token
+	token := c.Query("token")
+	claims, err := util.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+		return
+	}
+
+	// 判断用户是否存在
+	userId, exist := dao.IsExist(claims.Username, claims.Password)
+	if !exist {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  "No userInfo corresponding to token"})
+		return
+	}
+
+	comments, err := service.CommentList(videoId, userId)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  fmt.Sprintf("Get omment list err, %s", err.Error())})
+		return
+	}
+
 	c.JSON(http.StatusOK, CommentListResponse{
-		Response: Response{StatusCode: 0},
-		// TODO 封装评论
-		CommentList: DemoComments,
+		Response:    Response{StatusCode: 0},
+		CommentList: comments,
 	})
 }
