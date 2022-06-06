@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const FIND_FAVORITE_VIDEO_LIST_BY_UID_SQL = `SELECT
+const FindFavoriteVideoListByUidSql = `SELECT
 	dy_video.Id,
 	dy_video.play_url,
 	dy_video.cover_url,
@@ -23,10 +23,7 @@ FROM
 	LEFT JOIN dy_video ON dy_favorite.video_id = dy_video.id
 	LEFT JOIN dy_user ON dy_video.user_id = dy_user.id
 WHERE
-	dy_favorite.user_id = ? AND
-	dy_favorite.isdelete = 0 AND 
-    dy_user.isdelete = 0
-	`
+	dy_favorite.user_id = ?`
 
 type Video struct {
 	Id            sql.NullInt64  `json:"id,omitempty"`
@@ -82,7 +79,7 @@ func FindFavoriteVideoListByUId(uid int64) ([]vo.Video, error) {
 	go findFollowerIdsByFollowing(followerIdsChan, errorChan, uid)
 	// 根据用户id获取点赞的视频
 	db := global.DBEngine
-	rows, err := db.DB().Query(FIND_FAVORITE_VIDEO_LIST_BY_UID_SQL, uid)
+	rows, err := db.DB().Query(FindFavoriteVideoListByUidSql, uid)
 	videos := make([]vo.Video, 0)
 	if err != nil {
 		return videos, err
