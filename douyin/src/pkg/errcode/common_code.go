@@ -13,4 +13,7 @@ var (
 	UnauthorizedTokenGenerate = NewError(10000006, "鉴权失败，Token生产失败")
 	TooManyRequest            = NewError(10000007, "请求过多")
 	LikeFail                  = NewError(10000008, "点赞失败")
+	UnLikeFail                = NewError(10000009, "取消点赞失败")
+	AddCommentFail            = NewError(10000010, "新增评论失败")
+	DeleteCommentFail         = NewError(10000011, "删除评论失败")
 )
