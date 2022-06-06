@@ -22,5 +22,5 @@ func FavoriteAction(userId, videoId int64, actionType int32) error {
 
 // FavoriteList 喜欢列表
 func FavoriteList(userId int64) ([]vo.Video, error) {
-	return dao.BatchVideoByUId(userId)
+	return dao.FindFavoriteVideoListByUId(userId)
 }
