@@ -1,19 +1,27 @@
 package service
 
-import "douyin/src/dao"
-
-const (
-	ACTION_TYPE_LKIE = iota + 1
-	ACTION_TYPE_UNLIKE
+import (
+	"douyin/src/dao"
+	"douyin/src/pojo/vo"
+	"errors"
+	"fmt"
 )
 
-type FavoriteActionDTO struct {
-	UserId     int64 `json:"user_id"`
-	VideoId    int64 `json:"video_id"`
-	ActionType int32 `json:"action_type"`
+const LikeOpt = 1   // 点赞
+const UnLikeOpt = 2 // 取消点赞
+
+// FavoriteAction 爱心操作
+func FavoriteAction(userId, videoId int64, actionType int32) error {
+	if actionType == LikeOpt {
+		return dao.Like(userId, videoId)
+	} else if actionType == UnLikeOpt {
+		return dao.UnLike(userId, videoId)
+	} else {
+		return errors.New(fmt.Sprintf("unsupported operation, action_type = %d", actionType))
+	}
 }
 
-func FavoriteAction(favoriteActionDTO FavoriteActionDTO) {
-	favoriteActionDO := dao.FavoriteActionDO{VideoId: favoriteActionDTO.VideoId, UserId: favoriteActionDTO.UserId}
-	dao.FavoriteAction(favoriteActionDO, favoriteActionDTO.ActionType)
+// FavoriteList 喜欢列表
+func FavoriteList(userId int64) ([]vo.Video, error) {
+	return dao.BatchVideoByUId(userId)
 }
