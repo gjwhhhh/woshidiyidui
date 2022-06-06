@@ -5,10 +5,9 @@ import (
 	"douyin/src/global"
 	"douyin/src/pkg/errcode"
 	"douyin/src/pojo/entity"
+	"douyin/src/pojo/vo"
 	"github.com/jinzhu/gorm"
 )
-
-// TODO 事务sql操作
 
 // Like 新增点赞记录
 // 开启事务
@@ -57,5 +56,25 @@ func UnLike(userId, videoId int64) error {
 		return errcode.LikeFail
 	}
 	tx.Commit()
+	return nil
+}
+
+// TODO 事务sql操作
+
+// AddComment 新增评论
+// 开启事务
+// 1.新增一条评论记录
+// 2.在video表中评论数+1（是否需要CAS）
+// 提交事务
+func AddComment(videoId, userId int64, commentStr string) (vo.Comment, error) {
+	return vo.Comment{}, nil
+}
+
+// DeleteComment 新增评论
+// 开启事务
+// 1.删除对应评论记录
+// 2.在video表中评论数-1（是否需要CAS）
+// 提交事务
+func DeleteComment(commentId, videoId int64) error {
 	return nil
 }

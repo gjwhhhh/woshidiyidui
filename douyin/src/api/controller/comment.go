@@ -1,8 +1,13 @@
 package controller
 
 import (
+	"douyin/src/dao"
+	"douyin/src/service"
+	"douyin/src/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type CommentListResponse struct {
@@ -17,25 +22,49 @@ type CommentActionResponse struct {
 
 // CommentAction no practical effect, just check if token is valid
 func CommentAction(c *gin.Context) {
-	token := c.Query("token")
-	actionType := c.Query("action_type")
-
-	if user, exist := usersLoginInfo[token]; exist {
-		if actionType == "1" {
-			text := c.Query("comment_text")
-			c.JSON(http.StatusOK, CommentActionResponse{Response: Response{StatusCode: 0},
-				Comment: Comment{
-					Id:         1,
-					User:       user,
-					Content:    text,
-					CreateDate: "05-01",
-				}})
-			return
-		}
-		c.JSON(http.StatusOK, Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	// 参数校验
+	videoId, err1 := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
+	if err1 != nil || err2 != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  "Illegal params, parse err"})
+		return
 	}
+
+	// 校验token
+	token := c.Query("token")
+	claims, err := util.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+		return
+	}
+
+	// 判断用户是否存在
+	userId, exist := dao.IsExist(claims.Username, claims.Password)
+	if !exist {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  "No userInfo corresponding to token"})
+		return
+	}
+
+	// 取消评论comment返回空结构体，新增评论返回comment
+	comment, err := service.CommentAction(videoId, userId, int32(actionType), c)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  "No userInfo corresponding to token"})
+		return
+	}
+
+	c.JSON(http.StatusOK,
+		CommentActionResponse{
+			Response: Response{StatusCode: 0},
+			Comment:  comment},
+	)
 }
 
 // CommentList all videos have same demo comment list
