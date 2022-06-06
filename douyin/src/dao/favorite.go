@@ -46,7 +46,7 @@ type User struct {
 
 // NewVoVideo 根据video获取vo.Video
 func (v Video) NewVoVideo() *vo.Video {
-	if !v.Id.Valid && !v.PlayUrl.Valid && !v.CoverUrl.Valid && !v.FavoriteCount.Valid && !v.CommentCount.Valid {
+	if !v.Id.Valid || !v.PlayUrl.Valid || !v.CoverUrl.Valid || !v.FavoriteCount.Valid || !v.CommentCount.Valid {
 		return nil
 	}
 	return &vo.Video{
@@ -60,7 +60,7 @@ func (v Video) NewVoVideo() *vo.Video {
 
 // NewVoUser 根据User获取vo.User
 func (u User) NewVoUser() *vo.User {
-	if !u.Id.Valid && !u.Name.Valid && !u.FollowCount.Valid && !u.FollowerCount.Valid {
+	if !u.Id.Valid || !u.Name.Valid || !u.FollowCount.Valid || !u.FollowerCount.Valid {
 		return nil
 	}
 	return &vo.User{
