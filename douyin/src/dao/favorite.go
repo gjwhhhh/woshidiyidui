@@ -29,6 +29,7 @@ func FindFavoriteVideoListByUId(uid int64) ([]vo.Video, error) {
 	if err != nil {
 		return videos, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var video vo.Video
 		var user vo.User
