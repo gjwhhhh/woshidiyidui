@@ -16,9 +16,8 @@ func FavoriteAction(userId, videoId int64, actionType int32) error {
 		return dao.Like(userId, videoId)
 	} else if actionType == UnLikeOpt {
 		return dao.UnLike(userId, videoId)
-	} else {
-		return errors.New(fmt.Sprintf("unsupported operation, action_type = %d", actionType))
 	}
+	return errors.New(fmt.Sprintf("unsupported operation, action_type = %d", actionType))
 }
 
 // FavoriteList 喜欢列表
