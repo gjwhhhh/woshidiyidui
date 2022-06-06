@@ -13,7 +13,7 @@ import (
 // FavoriteAction no practical effect, just check if token is valid
 func FavoriteAction(c *gin.Context) {
 	// 参数校验
-	videoId, err1 := strconv.ParseInt(c.Query("video_Id"), 10, 64)
+	videoId, err1 := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
 	if err1 != nil || err2 != nil {
 		c.JSON(http.StatusOK, Response{
