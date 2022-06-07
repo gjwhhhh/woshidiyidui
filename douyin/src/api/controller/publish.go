@@ -19,9 +19,8 @@ type VideoListResponse struct {
 
 // Publish 用户上传文件
 func Publish(c *gin.Context) {
-	token := c.PostForm("token")
-
 	// 校验token
+	token := c.PostForm("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, UserResponse{
@@ -96,8 +95,7 @@ func Publish(c *gin.Context) {
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
-	// 获取c
-	token := c.PostForm("token")
+	// 参数校验
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK, UserResponse{
@@ -110,6 +108,7 @@ func PublishList(c *gin.Context) {
 	}
 
 	// 校验token
+	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
