@@ -1,11 +1,14 @@
 package dao
 
 import (
+	"douyin/src/cache"
 	"douyin/src/global"
 	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
 	"github.com/jinzhu/gorm"
 )
+
+var UserCache = cache.UserCacheConstructor(50)
 
 // IsExist 判断用户是否存在
 func IsExist(username, password string) (int64, bool) {
@@ -38,19 +41,32 @@ func IsExistByUName(username string) (int64, bool) {
 // GetUserInfo 获取当前用户的信息
 func GetUserInfo(curUserId int64) *vo.User {
 	var db = global.DBEngine
+	// 查缓存,是否包含当前用户信息
+	cacheUser := UserCache.Get(curUserId)
+	// 包含，直接返回
+	if cacheUser != nil {
+		return &vo.User{
+			Id:            cacheUser.Id,
+			Name:          cacheUser.Username,
+			FollowerCount: int64(cacheUser.FollowCount),
+			FollowCount:   int64(cacheUser.FollowCount),
+		}
+	}
+
 	var dyUser entity.DyUser
-	err := db.Where("Id=?", curUserId).Find(&dyUser).Error
+	err := db.Where("id=?", curUserId).Find(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil
 	}
 
-	var voUser = &vo.User{
+	// 添加到缓存中
+	UserCache.Put(dyUser.Id, &dyUser)
+	return &vo.User{
 		Id:            dyUser.Id,
 		Name:          dyUser.Username,
 		FollowerCount: int64(dyUser.FollowCount),
 		FollowCount:   int64(dyUser.FollowCount),
 	}
-	return voUser
 }
 
 // GetOtherUserInfo 获取其它用户的信息
