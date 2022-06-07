@@ -4,16 +4,15 @@ import (
 	"douyin/src/global"
 	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
-	fmt "fmt"
+	"douyin/src/util"
 	"github.com/jinzhu/gorm"
-	"time"
 )
 
 // BatchVideoByTimeAndUId 通过时间和用户id获取视频流，需要指定用户是否点赞
 func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video, error) {
 	var dyVideoList []entity.DyVideo
 	var db = global.DBEngine
-	sqlTimeFormat := timeunixTotimeString(latestTime)
+	sqlTimeFormat := util.ParseTimeUnixToDbTime(latestTime)
 	//查询视频list
 	err := db.Where("create_date<?", sqlTimeFormat).Order("create_date DESC").Limit(pageSize).Find(&dyVideoList).Error
 	if err != nil {
@@ -55,7 +54,7 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 	var dyVideoList []entity.DyVideo
 	var db = global.DBEngine
-	sqlTimeFormat := timeunixTotimeString(latestTime)
+	sqlTimeFormat := util.ParseTimeUnixToDbTime(latestTime)
 	//查询视频list
 	err := db.Where("create_date<?", sqlTimeFormat).Order("create_date DESC").Limit(pageSize).Find(&dyVideoList).Error
 	if err != nil {
@@ -85,20 +84,6 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 		videoVoList = append(videoVoList, videoTmp)
 	}
 	return videoVoList, nil
-}
-
-//将时间戳转换为数据库时间格式
-func timeunixTotimeString(lastestTime int64) string {
-	timeObj := time.UnixMilli(lastestTime)
-
-	year := timeObj.Year()     //年
-	month := timeObj.Month()   //月
-	day := timeObj.Day()       //日
-	hour := timeObj.Hour()     //小时
-	minute := timeObj.Minute() //分钟
-	second := timeObj.Second() //秒
-	timeString := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second)
-	return timeString
 }
 
 // GetVideoTimeById 通过视频id获取视频发布时间

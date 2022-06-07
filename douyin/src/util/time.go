@@ -2,12 +2,13 @@ package util
 
 import "time"
 
-const DbTimeFormat = "2006-01-02 15:04:05 -0700 MST"
+const DbTimeFormat1 = "2006-01-02 15:04:05 -0700 MST"
 const VoTimeFormat = "2006年1月2日 15时4分"
+const DbTimeFormat2 = "2006-01-02 15:04:05"
 
 // ParseDbTimeToVoTime 将db时间格式转换为vo时间格式
 func ParseDbTimeToVoTime(timeStr string) (string, error) {
-	parse, err := time.Parse(DbTimeFormat, timeStr)
+	parse, err := time.Parse(DbTimeFormat1, timeStr)
 	if err != nil {
 		return "", err
 	}
@@ -21,4 +22,10 @@ func ParseRFC3339TimeToVoTime(timeStr string) (string, error) {
 		return "", err
 	}
 	return parse.Format(VoTimeFormat), nil
+}
+
+// ParseTimeUnixToDbTime 将时间戳转换为数据库时间格式
+func ParseTimeUnixToDbTime(latestTime int64) string {
+	time := time.UnixMilli(latestTime)
+	return time.Format(DbTimeFormat2)
 }
