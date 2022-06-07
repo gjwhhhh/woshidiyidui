@@ -59,21 +59,24 @@ loop:
 
 	// 拼装数据为vo并加入列表
 	for rows.Next() {
-		var comment vo.Comment
-		var commentator vo.User
-
+		var comment commentValid
+		var commentator userValid
 		if err = rows.Scan(&comment.Id, &comment.Content, &comment.CreateDate, &commentator.Id,
 			&commentator.Name, &commentator.FollowCount, &commentator.FollowerCount); err != nil {
 			return comments, err
 		}
-
+		voUser := commentator.NewVoUser()
+		if voUser == nil {
+			continue
+		}
+		voComment := comment.NewVoComment()
+		if voComment == nil {
+			continue
+		}
 		// 如当前用户的关注列表中有此评论者，则评论者的IsFollow为true
-		_, commentator.IsFollow = followerIdMap[commentator.Id]
-
+		_, voUser.IsFollow = followerIdMap[voUser.Id]
 		comment.User = commentator
-
-		comments = append(comments, comment)
+		comments = append(comments, *voComment)
 	}
-
 	return comments, nil
 }
