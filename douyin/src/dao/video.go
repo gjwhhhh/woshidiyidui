@@ -166,7 +166,7 @@ func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 func BatchVideoByUIdAndOtherUId(curUserId, otherUId int64) ([]vo.Video, error) {
 	var dyVideoList []entity.DyVideo
 	var db = global.DBEngine
-	err := db.Where("user_id=?", curUserId).Find(&dyVideoList).Error
+	err := db.Where("user_id=?", otherUId).Find(&dyVideoList).Error
 	if err != nil {
 		return make([]vo.Video, 0), err
 	}

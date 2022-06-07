@@ -2,8 +2,8 @@ package service
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/pojo/vo"
-	"errors"
 )
 
 // PublishVideo 发布视频
@@ -12,23 +12,20 @@ func PublishVideo(userId int64, videoUrl, coverUrl, title string) error {
 }
 
 // PublishList 获取发布列表
-func PublishList(username, password string, userId int64) (videos []vo.Video, err error) {
-	userInfo, err := GetUserInfo(username, password, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	if userId == userInfo.Id { // 获取自己的发布列表
+func PublishList(curUserId, userId int64) (videos []vo.Video, err error) {
+	var userInfo *vo.User
+	if curUserId == 0 || userId == curUserId { // 未登录获取，或者获取自己的发布列表
 		videos, err = dao.BatchVideoByUId(userId)
+		userInfo = dao.GetUserInfo(curUserId)
 	} else { //获取别人的发布列表
 		// 临时保存参数
-		curUserId := userInfo.Id
 		var exist bool
 		// 获取别人的用户信息
-		userInfo, exist = dao.GetOtherUserInfo(userInfo.Id, userId)
+		userInfo, exist = dao.GetOtherUserInfo(curUserId, userId)
 		if !exist {
-			return nil, errors.New("user don't exist")
+			return nil, errcode.UserNotExistFail
 		}
+		// 获取别人的发布视频列表信息
 		videos, err = dao.BatchVideoByUIdAndOtherUId(curUserId, userId)
 	}
 	if err != nil {
@@ -36,8 +33,8 @@ func PublishList(username, password string, userId int64) (videos []vo.Video, er
 	}
 
 	// 封装作者
-	for _, video := range videos {
-		video.Author = *userInfo
+	for i, _ := range videos {
+		videos[i].Author = *userInfo
 	}
 	return videos, nil
 }

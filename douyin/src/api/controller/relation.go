@@ -2,6 +2,7 @@ package controller
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/service"
 	"douyin/src/util"
 	"fmt"
@@ -17,24 +18,14 @@ type UserListResponse struct {
 
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
-	// 获取参数
-	toUserId, err1 := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
-	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
-	if err1 != nil || err2 != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  "Illegal params",
-		})
-		return
-	}
-
 	// 校验token
 	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -43,15 +34,29 @@ func RelationAction(c *gin.Context) {
 	if !exist {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
+	// 获取参数
+	toUserId, err1 := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
+	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
+	if err1 != nil || err2 != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  errcode.InvalidParams.Error(),
+		})
+		return
+	}
+
+	// 调用业务
 	err = service.RelationAction(userId, toUserId, int32(actionType))
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Relationship operation err, %s", err.Error())})
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.OptionFail.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -60,23 +65,14 @@ func RelationAction(c *gin.Context) {
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
-	// 获取参数
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("Illegal params, userId parse err:%s", err.Error()),
-		})
-		return
-	}
-
 	// 校验token
 	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -85,15 +81,27 @@ func FollowList(c *gin.Context) {
 	if !exist {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+		})
 		return
 	}
 
+	// 获取参数
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
+		})
+		return
+	}
+
+	// 调用业务
 	follows, err := service.FollowList(userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("Get following list err:%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
 		})
 		return
 	}
@@ -114,7 +122,8 @@ func FollowerList(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -123,15 +132,17 @@ func FollowerList(c *gin.Context) {
 	if !exist {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+		})
 		return
 	}
 
+	// 调用业务
 	followers, err := service.FollowerList(userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("Get follower list err:%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
 		})
 		return
 	}

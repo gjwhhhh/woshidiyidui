@@ -2,6 +2,7 @@ package controller
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/service"
 	"douyin/src/util"
 	"douyin/src/util/oss"
@@ -23,11 +24,9 @@ func Publish(c *gin.Context) {
 	token := c.PostForm("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
-			},
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
 		})
 		return
 	}
@@ -35,20 +34,29 @@ func Publish(c *gin.Context) {
 	// 判断用户是否存在
 	userId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  "No userInfo corresponding to token",
-			},
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
 		})
 		return
 	}
 
+	// 参数校验
+	title := c.PostForm("title")
+	if title == "" {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, titile can not be empty", errcode.InvalidParams.Error()),
+		})
+		return
+	}
+
+	// 获取数据
 	file, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("File parsing failed，%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.FileReadFail.Msg(), err.Error()),
 		})
 		return
 	}
@@ -61,7 +69,7 @@ func Publish(c *gin.Context) {
 	if err := c.SaveUploadedFile(file, localFilePath); err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("File stored on server failed，%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.FileUploadFail.Msg(), err.Error()),
 		})
 		return
 	}
@@ -71,60 +79,67 @@ func Publish(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("File upload to cloud failed，%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.FileUploadFail.Msg(), err.Error()),
 		})
 		return
 	}
 
-	// 将视频存储z
-	title := c.PostForm("title")
 	err = service.PublishVideo(userId, videoUrl, coverUrl, title)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("File storge in db failed，%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.FileUploadFail.Msg(), err.Error()),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
-		StatusMsg:  title + " uploaded successfully",
+		StatusMsg:  fmt.Sprintf("%s uploaded successfully", title),
 	})
 }
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
+	// 校验token
+	var curUserId int64
+	token := c.Query("token")
+	if token != "" {
+		claims, err := util.ParseToken(token)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+			})
+			return
+		}
+		// 判断用户是否存在
+		var exist bool
+		curUserId, exist = dao.IsExist(claims.Username, claims.Password)
+		if !exist {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 0,
+				StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+			})
+			return
+		}
+	}
+
 	// 参数校验
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("Illegal params, userId parse err:%s", err.Error()),
-			},
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
 		})
 		return
 	}
 
-	// 校验token
-	token := c.Query("token")
-	claims, err := util.ParseToken(token)
+	videos, err := service.PublishList(curUserId, userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
-		})
-		return
-	}
-
-	videos, err := service.PublishList(claims.Username, claims.Password, userId)
-	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("Get publish video list err:%s", err.Error()),
-			},
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
 		})
 		return
 	}

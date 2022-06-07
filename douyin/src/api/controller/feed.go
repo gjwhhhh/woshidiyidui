@@ -2,6 +2,7 @@ package controller
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/service"
 	"douyin/src/util"
 	"fmt"
@@ -18,20 +19,8 @@ type FeedResponse struct {
 
 // Feed 返回视频流数据
 func Feed(c *gin.Context) {
-	// 获取参数
-	token := c.Query("token")
-	latestTime, err := strconv.ParseInt(c.Query("latest_time"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("Illegal params, latestTime parse err:%s", err.Error()),
-			},
-		})
-		return
-	}
-
 	// 校验token
+	token := c.Query("token")
 	var userId int64
 	if token != "" {
 		claims, err := util.ParseToken(token)
@@ -51,11 +40,23 @@ func Feed(c *gin.Context) {
 			c.JSON(http.StatusOK, UserResponse{
 				Response: Response{
 					StatusCode: 1,
-					StatusMsg:  "No userInfo corresponding to token",
+					StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
 				},
 			})
 			return
 		}
+	}
+
+	// 校验参数
+	latestTime, err := strconv.ParseInt(c.Query("latest_time"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
+			},
+		})
+		return
 	}
 
 	// 调用service获取视频流
@@ -65,7 +66,7 @@ func Feed(c *gin.Context) {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{
 				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("Getting video feed error:%s", err.Error()),
+				StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
 			},
 		})
 		return

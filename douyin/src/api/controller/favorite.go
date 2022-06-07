@@ -2,6 +2,7 @@ package controller
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/service"
 	"douyin/src/util"
 	"fmt"
@@ -12,23 +13,14 @@ import (
 
 // FavoriteAction no practical effect, just check if token is valid
 func FavoriteAction(c *gin.Context) {
-	// 参数校验
-	videoId, err1 := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
-	if err1 != nil || err2 != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "Illegal params, parse err"})
-		return
-	}
-
 	// 校验token
 	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -36,40 +28,46 @@ func FavoriteAction(c *gin.Context) {
 	userId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+		})
 		return
 	}
 
+	// 参数校验
+	videoId, err1 := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
+	if err1 != nil || err2 != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  errcode.InvalidParams.Msg(),
+		})
+		return
+	}
+
+	// 调用业务
 	err = service.FavoriteAction(userId, videoId, int32(actionType))
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Failed to like, %s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.OptionFail.Msg(), err.Error()),
+		})
 		return
 	}
+
 	c.JSON(http.StatusOK, Response{StatusCode: 0})
 }
 
 // FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
-	// 获取参数
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("Illegal params, userId parse err:%s", err.Error()),
-		})
-		return
-	}
-
 	// 校验token
 	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -77,16 +75,28 @@ func FavoriteList(c *gin.Context) {
 	_, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+		})
 		return
 	}
 
+	// 获取参数
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
+		})
+		return
+	}
+
+	// 调用业务
 	videos, err := service.FavoriteList(userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("Get favorite video list err:%s", err.Error()),
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
 		})
 		return
 	}

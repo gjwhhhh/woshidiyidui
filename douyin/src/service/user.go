@@ -2,17 +2,17 @@ package service
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/pojo/vo"
 	"douyin/src/util"
 	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	"log"
 )
 
 type auth struct {
-	Username string `valid:"Required;MaxSize(50)"`
-	Password string `valid:"Required;MaxSize(50)"`
+	Username string `valid:"Required;MaxSize(32)"`
+	Password string `valid:"Required;MaxSize(32)"`
 }
 
 var validation = validator.New()
@@ -24,12 +24,11 @@ func Register(username, password string) (int64, string, error) {
 		Password: password,
 	})
 	if err != nil {
-		log.Fatalln("auth param error {}", err)
-		return 0, "", err
+		return 0, "", errors.New(fmt.Sprintf("%s, %s", errcode.InvalidParams.Error(), err.Error()))
 	}
 
 	// 判断用户是否存在
-	_, exist := dao.IsExist(username, password)
+	_, exist := dao.IsExistByUName((username))
 	if exist {
 		return 0, "", errors.New("user already exist")
 	}
@@ -37,14 +36,13 @@ func Register(username, password string) (int64, string, error) {
 	// 新增用户
 	userId, err := dao.AddUser(username, password)
 	if err != nil {
-		return 0, "", errors.New(fmt.Sprintf("add user fatal, %s", err.Error()))
+		return 0, "", errors.New(fmt.Sprintf("%s, %s", errcode.OptionFail.Error(), err.Error()))
 	}
 
 	// 生成token
 	token, err := util.GenerateToken(username, password)
 	if err != nil {
-		log.Fatalln("generate token error {}", err)
-		return 0, "", err
+		return 0, "", errors.New(fmt.Sprintf("%s, %s", errcode.OptionFail.Error(), err.Error()))
 	}
 	return userId, token, nil
 }
@@ -57,20 +55,18 @@ func GetToken(username, password string) (int64, string, error) {
 		Password: password,
 	})
 	if err != nil {
-		log.Fatalln("auth param error {}", err)
 		return 0, "", err
 	}
 
 	// 判断用户是否存在
 	userId, exist := dao.IsExist(username, password)
 	if !exist {
-		return 0, "", errors.New("user don't exist")
+		return 0, "", errors.New("wrong user name or password")
 	}
 
 	// 生成token
 	token, err := util.GenerateToken(username, password)
 	if err != nil {
-		log.Fatalln("generate token error {}", err)
 		return 0, "", err
 	}
 	return userId, token, nil

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"douyin/src/dao"
+	"douyin/src/pkg/errcode"
 	"douyin/src/service"
 	"douyin/src/util"
 	"fmt"
@@ -22,23 +23,14 @@ type CommentActionResponse struct {
 
 // CommentAction no practical effect, just check if token is valid
 func CommentAction(c *gin.Context) {
-	// 参数校验
-	videoId, err1 := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
-	if err1 != nil || err2 != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "Illegal params, parse err"})
-		return
-	}
-
 	// 校验token
 	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -46,8 +38,20 @@ func CommentAction(c *gin.Context) {
 	userId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+		})
+		return
+	}
+
+	// 参数校验
+	videoId, err1 := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 32)
+	if err1 != nil || err2 != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  errcode.InvalidParams.Error(),
+		})
 		return
 	}
 
@@ -55,35 +59,28 @@ func CommentAction(c *gin.Context) {
 	comment, err := service.CommentAction(videoId, userId, int32(actionType), c)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Comment err, %s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.OptionFail.Msg(), err.Error()),
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK,
-		CommentActionResponse{
-			Response: Response{StatusCode: 0},
-			Comment:  comment},
+	c.JSON(http.StatusOK, CommentActionResponse{
+		Response: Response{StatusCode: 0},
+		Comment:  comment},
 	)
 }
 
 // CommentList all videos have same demo comment list
 func CommentList(c *gin.Context) {
-	// 参数校验
-	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "Illegal params, parse err"})
-		return
-	}
 	// 校验token
 	token := c.Query("token")
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+		})
 		return
 	}
 
@@ -91,16 +88,29 @@ func CommentList(c *gin.Context) {
 	userId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  "No userInfo corresponding to token"})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
+		})
 		return
 	}
 
+	// 参数校验
+	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
+		})
+		return
+	}
+
+	// 调用业务
 	comments, err := service.CommentList(videoId, userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
-			StatusMsg:  fmt.Sprintf("Get omment list err, %s", err.Error())})
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
+		})
 		return
 	}
 

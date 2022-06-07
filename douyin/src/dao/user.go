@@ -19,7 +19,20 @@ func IsExist(username, password string) (int64, bool) {
 		return 0, false
 	}
 	return dy.Id, true
+}
 
+// IsExistByUName 判断用户是否存在
+func IsExistByUName(username string) (int64, bool) {
+	var db = global.DBEngine
+	var dy entity.DyUser
+	err := db.Where("username=?", username).Find(&dy).Error
+	if err == gorm.ErrRecordNotFound {
+		return 0, false
+	}
+	if err != nil {
+		return 0, false
+	}
+	return dy.Id, true
 }
 
 // GetUserInfo 获取当前用户的信息
@@ -46,14 +59,13 @@ func GetOtherUserInfo(curUserId, otherUserId int64) (*vo.User, bool) {
 	var db = global.DBEngine
 	//获取用户信息
 	var dyUser entity.DyUser
-	err := db.Where("Id=?", otherUserId).Find(&dyUser).Error
+	err := db.Where("id=?", otherUserId).Find(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, false
 	}
 	var isFol = false
-	var dyRela entity.DyRelation
 	//获取是否关注信息
-	err = db.Where("follower_id=? AND following_id=?", curUserId, otherUserId).Find(dyRela).Error
+	err = db.Where("follower_id=? AND following_id=?", curUserId, otherUserId).Find(&entity.DyRelation{}).Error
 	if err == gorm.ErrRecordNotFound {
 		isFol = false
 	} else {
