@@ -2,6 +2,7 @@ package dao
 
 import (
 	"douyin/src/global"
+	"douyin/src/pojo/vo"
 	"github.com/jinzhu/gorm"
 )
 
@@ -28,4 +29,10 @@ func findFollowerIdsByFollowing(followerIdsChan chan<- map[int64]struct{}, error
 		followerIdMap[followerId] = struct{}{}
 	}
 	followerIdsChan <- followerIdMap
+}
+
+//查询某个用户关注的人的列表
+func FindFollowList(userid int64) ([]vo.User, error) {
+
+	return []vo.User{}, nil
 }

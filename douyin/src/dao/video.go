@@ -137,6 +137,7 @@ func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 		return make([]vo.Video, 0), err
 	}
 	var videoVoList []vo.Video
+	//遍历视频，然后循环中查询用户的信息，指定是否点赞
 	for _, video := range dyVideoList {
 		var userTmp entity.DyUser
 		db.Where("id=?", video.UserId).Find(&userTmp)

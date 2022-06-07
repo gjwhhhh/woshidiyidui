@@ -1,8 +1,13 @@
 package controller
 
 import (
+	"douyin/src/dao"
+	"douyin/src/service"
+	"douyin/src/util"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type UserListResponse struct {
@@ -23,12 +28,48 @@ func RelationAction(c *gin.Context) {
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
+
+	// 获取参数
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("Illegal params, userId parse err:%s", err.Error()),
+		})
+		return
+	}
+	// 校验token
+	token := c.Query("token")
+	claims, err := util.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error())})
+		return
+	}
+	// 判断用户是否存在
+	_, exist := dao.IsExist(claims.Username, claims.Password)
+	if !exist {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 0,
+			StatusMsg:  "No userInfo corresponding to token"})
+		return
+	}
+	follows, err := service.FollowList(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("Get favorite video list err:%s", err.Error()),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, UserListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
 		// TODO 封装用户
-		UserList: []User{DemoUser},
+		//UserList: []User{DemoUser},
+		UserList: follows,
 	})
 }
 

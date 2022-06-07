@@ -33,6 +33,7 @@ func CommentAction(videoId, userId int64, actionType int32, c *gin.Context) (*vo
 		return comment, nil
 	} else if actionType == DeleteCommentOpt {
 		commentId, err := strconv.ParseInt(c.Query("comment_id"), 10, 64)
+
 		if err != nil {
 			return nil, errors.New("illegal param, parsing comment_id err")
 		}
