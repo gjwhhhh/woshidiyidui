@@ -22,8 +22,9 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 	//转换voList
 	var videoVoList = make([]vo.Video, 0)
 	for i := 0; i < len(dyVideoList); i++ {
-		var userTmp entity.DyUser
-		db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
+		// 通过缓存查询
+		userTmp := GetUserInfo(dyVideoList[i].UserId)
+		//db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
 		var dyFavorite entity.DyFavorite
 		err := db.Where("user_id=? AND video_id=?", userId, dyVideoList[i].Id).Find(&dyFavorite).Error
 		var isFavorite = false
@@ -34,7 +35,7 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 			Id: dyVideoList[i].Id,
 			Author: vo.User{
 				Id:            userTmp.Id,
-				Name:          userTmp.Username,
+				Name:          userTmp.Name,
 				FollowCount:   int64(userTmp.FollowerCount),
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      false,
@@ -64,13 +65,14 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 	//转换voList
 	var videoVoList = make([]vo.Video, 0)
 	for i := 0; i < len(dyVideoList); i++ {
-		var userTmp entity.DyUser
-		db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
+		// 通过缓存查询
+		userTmp := GetUserInfo(dyVideoList[i].UserId)
+		//db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
 		videoTmp := vo.Video{
 			Id: dyVideoList[i].Id,
 			Author: vo.User{
 				Id:            userTmp.Id,
-				Name:          userTmp.Username,
+				Name:          userTmp.Name,
 				FollowCount:   int64(userTmp.FollowerCount),
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      false,
@@ -124,14 +126,15 @@ func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 	var videoVoList []vo.Video
 	//遍历视频，然后循环中查询用户的信息，指定是否点赞
 	for _, video := range dyVideoList {
-		var userTmp entity.DyUser
-		db.Where("id=?", video.UserId).Find(&userTmp)
+		// 通过缓存查询
+		userTmp := GetUserInfo(video.UserId)
+		//db.Where("id=?", video.UserId).Find(&userTmp)
 
 		videoVoTmp := vo.Video{
 			Id: video.Id,
 			Author: vo.User{
 				Id:            userTmp.Id,
-				Name:          userTmp.Username,
+				Name:          userTmp.Name,
 				FollowCount:   int64(userTmp.FollowCount),
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      false,
