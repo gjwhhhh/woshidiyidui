@@ -75,7 +75,7 @@ loop:
 		}
 		// 如当前用户的关注列表中有此评论者，则评论者的IsFollow为true
 		_, voUser.IsFollow = followerIdMap[voUser.Id]
-		comment.User = commentator
+		voComment.User = *voUser
 		comments = append(comments, *voComment)
 	}
 	return comments, nil
