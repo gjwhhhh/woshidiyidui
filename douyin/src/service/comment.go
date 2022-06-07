@@ -44,5 +44,16 @@ func CommentAction(videoId, userId int64, actionType int32, c *gin.Context) (*vo
 
 // CommentList 评论列表
 func CommentList(videoId, userId int64) ([]vo.Comment, error) {
-	return dao.FindCommentListByVideoIdAndUId(videoId, userId)
+	comments, err := dao.FindCommentListByVideoIdAndUId(videoId, userId)
+	if err != nil {
+		return nil, err
+	}
+	for i, comment := range comments {
+		time, _ := util.ParseRFC3339TimeToVoTime(comment.CreateDate)
+		if err != nil {
+			return nil, err
+		}
+		comments[i].CreateDate = time
+	}
+	return comments, nil
 }
