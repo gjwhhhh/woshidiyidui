@@ -25,24 +25,24 @@ FROM
 WHERE
 	dy_favorite.user_id = ?`
 
-type Video struct {
+type videoValid struct {
 	Id            sql.NullInt64  `json:"id,omitempty"`
-	Author        User           `json:"author"`
+	Author        userValid      `json:"author"`
 	PlayUrl       sql.NullString `json:"play_url" json:"play_url,omitempty"`
 	CoverUrl      sql.NullString `json:"cover_url,omitempty"`
 	FavoriteCount sql.NullInt64  `json:"favorite_count,omitempty"`
 	CommentCount  sql.NullInt64  `json:"comment_count,omitempty"`
 }
 
-type User struct {
+type userValid struct {
 	Id            sql.NullInt64  `json:"id,omitempty"`
 	Name          sql.NullString `json:"name,omitempty"`
 	FollowCount   sql.NullInt64  `json:"follow_count,omitempty"`
 	FollowerCount sql.NullInt64  `json:"follower_count,omitempty"`
 }
 
-// NewVoVideo 根据video获取vo.Video
-func (v Video) NewVoVideo() *vo.Video {
+// NewVoVideo 根据video获取vo.videoValid
+func (v videoValid) NewVoVideo() *vo.Video {
 	if !v.Id.Valid || !v.PlayUrl.Valid || !v.CoverUrl.Valid || !v.FavoriteCount.Valid || !v.CommentCount.Valid {
 		return nil
 	}
@@ -55,8 +55,8 @@ func (v Video) NewVoVideo() *vo.Video {
 	}
 }
 
-// NewVoUser 根据User获取vo.User
-func (u User) NewVoUser() *vo.User {
+// NewVoUser 根据User获取vo.userValid
+func (u userValid) NewVoUser() *vo.User {
 	if !u.Id.Valid || !u.Name.Valid || !u.FollowCount.Valid || !u.FollowerCount.Valid {
 		return nil
 	}
@@ -104,8 +104,8 @@ loop:
 	}
 	// 读取数据并判断是否关注
 	for rows.Next() {
-		var video Video
-		var user User
+		var video videoValid
+		var user userValid
 		if err = rows.Scan(&video.Id, &video.PlayUrl, &video.CoverUrl, &video.FavoriteCount, &video.CommentCount, &user.Id, &user.Name, &user.FollowCount, &user.FollowerCount); err != nil {
 			return videos, err
 		}
