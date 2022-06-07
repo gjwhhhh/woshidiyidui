@@ -1,27 +1,40 @@
 package dao
 
 import (
-	"douyin/src/cache"
+	"douyin/src/cache/user_id"
+	"douyin/src/cache/user_uname_pwd"
 	"douyin/src/global"
 	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
 	"github.com/jinzhu/gorm"
 )
 
-var UserCache = cache.UserCacheConstructor(50)
+var UserCacheById = user_id.UserCacheConstructor(50)
+var UserCacheByUnameAndPwd = user_uname_pwd.UserCacheConstructor(50)
 
 // IsExist 判断用户是否存在
 func IsExist(username, password string) (int64, bool) {
 	var db = global.DBEngine
-	var dy entity.DyUser
-	err := db.Where("username=? AND password=?", username, password).Find(&dy).Error
+	// 查缓存,是否包含当前用户信息
+	kw := username + password
+	cacheUser := UserCacheByUnameAndPwd.Get(kw)
+	// 包含，直接返回
+	if cacheUser != nil {
+		return cacheUser.Id, true
+	}
+
+	var dyUser entity.DyUser
+	err := db.Where("username=? AND password=?", username, password).Find(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
 		return 0, false
 	}
+
+	// 添加到缓存中
+	UserCacheByUnameAndPwd.Put(kw, &dyUser)
 	if err != nil {
 		return 0, false
 	}
-	return dy.Id, true
+	return dyUser.Id, true
 }
 
 // IsExistByUName 判断用户是否存在
@@ -42,7 +55,7 @@ func IsExistByUName(username string) (int64, bool) {
 func GetUserInfo(curUserId int64) *vo.User {
 	var db = global.DBEngine
 	// 查缓存,是否包含当前用户信息
-	cacheUser := UserCache.Get(curUserId)
+	cacheUser := UserCacheById.Get(curUserId)
 	// 包含，直接返回
 	if cacheUser != nil {
 		return &vo.User{
@@ -60,7 +73,7 @@ func GetUserInfo(curUserId int64) *vo.User {
 	}
 
 	// 添加到缓存中
-	UserCache.Put(dyUser.Id, &dyUser)
+	UserCacheById.Put(dyUser.Id, &dyUser)
 	return &vo.User{
 		Id:            dyUser.Id,
 		Name:          dyUser.Username,

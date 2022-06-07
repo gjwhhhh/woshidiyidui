@@ -1,4 +1,4 @@
-package cache
+package user_uname_pwd
 
 import (
 	"douyin/src/pojo/entity"
@@ -11,18 +11,18 @@ var lock sync.Mutex
 type UserLruCache struct {
 	size       int
 	capacity   int
-	cache      map[int64]*node
+	cache      map[string]*node
 	head, tail *node
 }
 
 // node 内部节点
 type node struct {
-	k         int64
+	k         string
 	v         *entity.DyUser
 	pre, next *node
 }
 
-func initNode(key int64, value *entity.DyUser) *node {
+func initNode(key string, value *entity.DyUser) *node {
 	return &node{
 		k: key,
 		v: value,
@@ -33,9 +33,9 @@ func UserCacheConstructor(capacity int) *UserLruCache {
 	lruCache := &UserLruCache{
 		size:     0,
 		capacity: capacity,
-		cache:    map[int64]*node{},
-		head:     initNode(0, nil),
-		tail:     initNode(0, nil),
+		cache:    map[string]*node{},
+		head:     initNode("", nil),
+		tail:     initNode("", nil),
 	}
 	lruCache.head.next = lruCache.tail
 	lruCache.tail.pre = lruCache.head
@@ -46,7 +46,7 @@ func (this *UserLruCache) Head() *entity.DyUser {
 	return this.head.next.v
 }
 
-func (this *UserLruCache) Get(key int64) *entity.DyUser {
+func (this *UserLruCache) Get(key string) *entity.DyUser {
 	if _, ok := this.cache[key]; !ok {
 		return nil
 	}
@@ -55,7 +55,7 @@ func (this *UserLruCache) Get(key int64) *entity.DyUser {
 	return node.v
 }
 
-func (this *UserLruCache) Put(key int64, value *entity.DyUser) {
+func (this *UserLruCache) Put(key string, value *entity.DyUser) {
 	lock.Lock()
 	defer lock.Unlock()
 	if _, ok := this.cache[key]; !ok {

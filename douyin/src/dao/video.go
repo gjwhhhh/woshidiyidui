@@ -160,8 +160,9 @@ func BatchVideoByUIdAndOtherUId(curUserId, otherUId int64) ([]vo.Video, error) {
 	}
 	var videoVoList []vo.Video
 	for _, video := range dyVideoList {
-		var userTmp entity.DyUser
-		db.Where("id=?", video.UserId).Find(&userTmp)
+		// 通过缓存查询
+		userTmp := GetUserInfo(video.UserId)
+		//db.Where("id=?", video.UserId).Find(&userTmp)
 		var dyRelation entity.DyRelation
 		err := db.Where("follower_id=? AND following_id=?", curUserId, otherUId).Find(&dyRelation).Error
 		var isFollow = false
@@ -178,7 +179,7 @@ func BatchVideoByUIdAndOtherUId(curUserId, otherUId int64) ([]vo.Video, error) {
 			Id: video.Id,
 			Author: vo.User{
 				Id:            userTmp.Id,
-				Name:          userTmp.Username,
+				Name:          userTmp.Name,
 				FollowCount:   int64(userTmp.FollowCount),
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      isFollow,

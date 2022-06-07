@@ -1,4 +1,4 @@
-package cache
+package user_id
 
 import (
 	"douyin/src/pojo/entity"
