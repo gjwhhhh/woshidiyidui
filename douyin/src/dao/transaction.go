@@ -43,10 +43,6 @@ func UnLike(userId, videoId int64) error {
 	var db = global.DBEngine
 	tx := db.Begin()
 	defer tx.Callback()
-	//dyFavorite := &entity.DyFavorite{
-	//	UserId:  sql.NullInt64{Int64: userId, Valid: true},
-	//	VideoId: sql.NullInt64{Int64: videoId, Valid: true},
-	//}
 	// 保存中间表
 	if rowsAffected := tx.Where("user_id = ? and video_id = ?", userId, videoId).Delete(&entity.DyFavorite{}).RowsAffected; tx.Error != nil || rowsAffected != 1 {
 		return errcode.UnLikeFail
@@ -112,6 +108,60 @@ func DeleteComment(commentId, videoId int64) error {
 	tx.Table("dy_video").Where("id = ? and isdeleted = ?", videoId, 0).UpdateColumn("comment_count", gorm.Expr("comment_count - ?", 1))
 	if tx.Error != nil {
 		return errcode.DeleteCommentFail
+	}
+	tx.Commit()
+	return nil
+}
+
+// Follow 新增关注操作
+// 开启事务
+// 1.新增一条关注记录
+// 2.在user表中关注数+1（是否需要CAS）
+// 提交事务
+func Follow(userId, toUserId int64) error {
+	var db = global.DBEngine
+	tx := db.Begin()
+	defer tx.Callback()
+	dyRelation := &entity.DyRelation{
+		FollowerId:  sql.NullInt64{Int64: userId, Valid: true},
+		FollowingId: sql.NullInt64{Int64: toUserId, Valid: true},
+	}
+	// 保存中间表
+	if rowsAffected := tx.Save(dyRelation).RowsAffected; tx.Error != nil || rowsAffected != 1 {
+		return errcode.FollowFail
+	}
+	tx.Table("dy_user").Where("id = ?", userId).UpdateColumn("follow_count", gorm.Expr("follow_count + ?", 1))
+	if tx.Error != nil {
+		return errcode.FollowFail
+	}
+	tx.Table("dy_user").Where("id = ?", toUserId).UpdateColumn("follower_count", gorm.Expr("follower_count + ?", 1))
+	if tx.Error != nil {
+		return errcode.FollowFail
+	}
+	tx.Commit()
+	return nil
+}
+
+// UnFollow 取消关注操作
+// 开启事务
+// 1.删除对应关注记录
+// 2.在video表中点赞数-1（是否需要CAS）
+// 提交事务
+func UnFollow(userId, toUserId int64) error {
+	var db = global.DBEngine
+	tx := db.Begin()
+	defer tx.Callback()
+	// 保存中间表
+	if rowsAffected := tx.Where("follower_id = ? and following_id = ?", userId, toUserId).Delete(&entity.DyRelation{}).RowsAffected; tx.Error != nil || rowsAffected != 1 {
+		return errcode.UnFollowFail
+	}
+	tx.Table("dy_user").Where("id = ?", userId).UpdateColumn("follow_count", gorm.Expr("follow_count - ?", 1))
+	if tx.Error != nil {
+		return errcode.UnLikeFail
+	}
+	tx.Table("dy_user").Where("id = ?", toUserId).UpdateColumn("follower_count", gorm.Expr("follow_count - ?", 1))
+	if tx.Error != nil {
+		return errcode.UnLikeFail
 	}
 	tx.Commit()
 	return nil

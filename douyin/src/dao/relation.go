@@ -10,7 +10,7 @@ import (
 func FindFollowerIdsByFollowing(uid int64) ([]int64, error) {
 	db := global.DBEngine
 	var followerIds []int64
-	if err := db.Table("dy_relation").Where("follower_id = ?", uid).Find(&followerIds).Error; err == nil || err == gorm.ErrRecordNotFound {
+	if err := db.Table("dy_relation").Where("follower_id = ? and isdeleted = ?", uid, 0).Find(&followerIds).Error; err == nil || err == gorm.ErrRecordNotFound {
 		return followerIds, nil
 	} else {
 		return followerIds, err
@@ -31,8 +31,14 @@ func findFollowerIdsByFollowing(followerIdsChan chan<- map[int64]struct{}, error
 	followerIdsChan <- followerIdMap
 }
 
-//查询某个用户关注的人的列表
-func FindFollowList(userid int64) ([]vo.User, error) {
+// TODO dao完成
 
+// FindFollowerList 查询某个用户粉丝列表
+func FindFollowerList(userid int64) ([]vo.User, error) {
+	return []vo.User{}, nil
+}
+
+// FindFollowList 查询某个用户关注的人的列表
+func FindFollowList(userid int64) ([]vo.User, error) {
 	return []vo.User{}, nil
 }

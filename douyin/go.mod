@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/jinzhu/gorm v1.9.16
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.4.0
 	github.com/u2takey/ffmpeg-go v0.4.1
 )
