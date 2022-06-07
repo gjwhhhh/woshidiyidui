@@ -1,6 +1,11 @@
 package dao
 
-import "douyin/src/pojo/vo"
+import (
+	"douyin/src/global"
+	"douyin/src/pkg/errcode"
+	"douyin/src/pojo/vo"
+	"time"
+)
 
 const FindCommentListByVideoIdAndUIdSQL = `SELECT
 	dy_comment.id,
@@ -18,6 +23,57 @@ WHERE
 
 // FindCommentListByVideoIdAndUId 评论列表
 func FindCommentListByVideoIdAndUId(videoId, userId int64) ([]vo.Comment, error) {
-	// TODO 完成 dao
-	return nil, nil
+	// 首先查询当前用户的关注列表
+	followerIdsChan := make(chan map[int64]struct{})
+	errorChan := make(chan error)
+	var followerIdMap map[int64]struct{}
+	timer := time.NewTimer(time.Second)
+	go findFollowerIdsByFollowing(followerIdsChan, errorChan, userId)
+
+	// 从数据库查询评论列表
+	db := global.DBEngine
+	rows, err := db.DB().Query(FindCommentListByVideoIdAndUIdSQL, videoId)
+	comments := make([]vo.Comment, 0)
+	if err != nil {
+		return comments, err
+	}
+	defer rows.Close()
+
+	// 等待上方查询关注列表的协程返回结果，超时则直接返回错误码
+loop:
+	for {
+		select {
+		case err = <-errorChan:
+			return comments, err
+		case followerIdMap = <-followerIdsChan:
+			break loop
+		default:
+			select {
+			case <-timer.C:
+				return comments, errcode.TimeOutFail
+			default:
+				continue
+			}
+		}
+	}
+
+	// 拼装数据为vo并加入列表
+	for rows.Next() {
+		var comment vo.Comment
+		var commentator vo.User
+
+		if err = rows.Scan(&comment.Id, &comment.Content, &comment.CreateDate, &commentator.Id,
+			&commentator.Name, &commentator.FollowCount, &commentator.FollowerCount); err != nil {
+			return comments, err
+		}
+
+		// 如当前用户的关注列表中有此评论者，则评论者的IsFollow为true
+		_, commentator.IsFollow = followerIdMap[commentator.Id]
+
+		comment.User = commentator
+
+		comments = append(comments, comment)
+	}
+
+	return comments, nil
 }
