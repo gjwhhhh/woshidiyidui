@@ -29,7 +29,7 @@ func initNode(key int64, value *entity.DyUser) *node {
 	}
 }
 
-func Constructor(capacity int) *UserLruCache {
+func UserCacheConstructor(capacity int) *UserLruCache {
 	lruCache := &UserLruCache{
 		size:     0,
 		capacity: capacity,

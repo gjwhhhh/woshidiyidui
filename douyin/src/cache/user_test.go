@@ -7,7 +7,7 @@ import (
 )
 
 func TestUserLruCache1(t *testing.T) {
-	userLruCache := Constructor(50)
+	userLruCache := UserCacheConstructor(50)
 	fmt.Println(userLruCache.size)
 	userLruCache.Put(1, &entity.DyUser{Username: "张三"})
 	fmt.Println(userLruCache.size)
@@ -21,7 +21,7 @@ func TestUserLruCache1(t *testing.T) {
 }
 
 func TestUserLruCache2(t *testing.T) {
-	userLruCache := Constructor(10)
+	userLruCache := UserCacheConstructor(10)
 	for i := 0; i < 20; i++ {
 		fmt.Println(userLruCache.size)
 		userLruCache.Put(int64(i), &entity.DyUser{Username: fmt.Sprintf("用户%d", i)})
