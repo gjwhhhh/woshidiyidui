@@ -28,7 +28,7 @@ func Register(username, password string) (int64, string, error) {
 	}
 
 	// 判断用户是否存在
-	_, exist := dao.IsExistByUName((username))
+	_, exist := dao.IsExistByUName(username)
 	if exist {
 		return 0, "", errors.New("user already exist")
 	}

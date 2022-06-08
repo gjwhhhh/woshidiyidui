@@ -115,9 +115,11 @@ func GetOtherUserInfo(curUserId, otherUserId int64) (*vo.User, bool) {
 // AddUser 新增用户
 func AddUser(username, password string) (int64, error) {
 	var db = global.DBEngine
+	name := &sql.NullString{String: username, Valid: true}
+	pwd := &sql.NullString{String: password, Valid: true}
 	user := entity.DyUser{
-		Username: sql.NullString{String: username},
-		Password: sql.NullString{String: password},
+		Username: *name,
+		Password: *pwd,
 	}
 	err := db.Create(&user).Error
 	if err != nil {

@@ -64,10 +64,11 @@ func AddComment(videoId, userId int64, commentStr string) (*vo.Comment, error) {
 	var db = global.DBEngine
 	tx := db.Begin()
 	defer tx.Callback()
+	commentAdd := &sql.NullString{String: commentStr, Valid: true}
 	dyComment := &entity.DyComment{
 		UserId:  sql.NullInt64{Int64: userId, Valid: true},
 		VideoId: sql.NullInt64{Int64: videoId, Valid: true},
-		Content: sql.NullString{String: commentStr, Valid: true},
+		Content: *commentAdd,
 	}
 	// 保存中间表
 	if rowsAffected := tx.Save(dyComment).RowsAffected; tx.Error != nil || rowsAffected != 1 {
