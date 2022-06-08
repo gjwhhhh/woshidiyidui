@@ -171,12 +171,12 @@ func Follow(userId, toUserId int64) error {
 		return errcode.FollowFail.WithDetail("，关注失败")
 	}
 
-	tx.Table("dy_user").Where("id = ? and is_deleted = ?", userId).UpdateColumn("follow_count", gorm.Expr("follow_count + ?", 1))
+	tx.Table("dy_user").Where("id = ? and is_deleted = ?", userId, 0).UpdateColumn("follow_count", gorm.Expr("follow_count + ?", 1))
 	if tx.Error != nil {
 		return errcode.FollowFail.WithDetail(tx.Error.Error())
 	}
 
-	tx.Table("dy_user").Where("id = ? and is_deleted = ?", toUserId).UpdateColumn("follower_count", gorm.Expr("follower_count + ?", 1))
+	tx.Table("dy_user").Where("id = ? and is_deleted = ?", toUserId, 0).UpdateColumn("follower_count", gorm.Expr("follower_count + ?", 1))
 	if tx.Error != nil {
 		return errcode.FollowFail.WithDetail(tx.Error.Error())
 	}
@@ -201,25 +201,25 @@ func UnFollow(userId, toUserId int64) error {
 	// 保存中间表
 	var count int
 	if db.Table("dy_relation").Where("follower_id = ? and following_id = ? and is_deleted = ?", userId, toUserId, 0).Count(&count); count < 1 {
-		return errcode.FollowFail.WithDetail("，当前y")
+		return errcode.UnFollowFail.WithDetail("，当前未关注")
 	}
 
-	if rowsAffected := tx.Table("dy_relation").Where("follower_id = ? and following_id = ? and is_deleted = ?", userId, toUserId, 0).UpdateColumn("is_deleted", 1).RowsAffected; tx.Error != nil || rowsAffected != 1 {
+	if tx.Table("dy_relation").Where("follower_id = ? and following_id = ? and is_deleted = ?", userId, toUserId, 0).UpdateColumn("is_deleted", 1); tx.Error != nil {
 		return errcode.UnFollowFail
 	}
 
 	tx.Table("dy_user").Where("id = ? and is_deleted = ?", userId, 0).UpdateColumn("follow_count", gorm.Expr("follow_count - ?", 1))
 	if tx.Error != nil {
-		return errcode.UnLikeFail
+		return errcode.UnFollowFail
 	}
 
-	tx.Table("dy_user").Where("id = ? and is_deleted = ?", toUserId, 0).UpdateColumn("follower_count", gorm.Expr("follow_count - ?", 1))
+	tx.Table("dy_user").Where("id = ? and is_deleted = ?", toUserId, 0).UpdateColumn("follower_count", gorm.Expr("follower_count - ?", 1))
 	if tx.Error != nil {
-		return errcode.UnLikeFail
+		return errcode.UnFollowFail
 	}
 
 	// CAS
-	if db.Table("dy_relation").Where("follower_id = ? and following_id = ? and is_deleted = ?", userId, toUserId, 0).Count(&count); count != 0 {
+	if db.Table("dy_relation").Where("follower_id = ? and following_id = ? and is_deleted = ?", userId, toUserId, 0).Count(&count); count < 1 {
 		return errcode.FollowFail.WithDetail("，操作频繁")
 	}
 	tx.Commit()

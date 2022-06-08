@@ -67,23 +67,27 @@ func RelationAction(c *gin.Context) {
 func FollowList(c *gin.Context) {
 	// 校验token
 	token := c.Query("token")
-	claims, err := util.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
-		})
-		return
-	}
+	var curUserId int64
+	if token != "" {
+		claims, err := util.ParseToken(token)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+			})
+			return
+		}
 
-	// 判断用户是否存在
-	curUserId, exist := dao.IsExist(claims.Username, claims.Password)
-	if !exist {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
-		})
-		return
+		// 判断用户是否存在
+		var exist bool
+		curUserId, exist = dao.IsExist(claims.Username, claims.Password)
+		if !exist {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, 没有关于此token的用户信息", errcode.UnauthorizedTokenError.Msg()),
+			})
+			return
+		}
 	}
 
 	// 获取参数
@@ -118,23 +122,27 @@ func FollowList(c *gin.Context) {
 func FollowerList(c *gin.Context) {
 	// 校验token
 	token := c.Query("token")
-	claims, err := util.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
-		})
-		return
-	}
+	var curUserId int64
+	if token != "" {
+		claims, err := util.ParseToken(token)
+		if err != nil {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
+			})
+			return
+		}
 
-	// 判断用户是否存在
-	curUserId, exist := dao.IsExist(claims.Username, claims.Password)
-	if !exist {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
-		})
-		return
+		// 判断用户是否存在
+		var exist bool
+		curUserId, exist = dao.IsExist(claims.Username, claims.Password)
+		if !exist {
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, 没有关于此token的用户信息", errcode.UnauthorizedTokenError.Msg()),
+			})
+			return
+		}
 	}
 
 	// 获取参数

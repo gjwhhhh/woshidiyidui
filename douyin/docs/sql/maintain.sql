@@ -13,3 +13,11 @@ ALTER TABLE `dy_comment` DROP `id`;
 ALTER TABLE `dy_comment` ADD `id` int NOT NULL FIRST;
 ALTER TABLE `dy_comment` MODIFY COLUMN `id` int NOT NULL AUTO_INCREMENT,ADD PRIMARY KEY(id);
 COMMIT;
+
+-- 删除无效关系，让关系表主键重新有序递增
+START TRANSACTION;
+DELETE FROM `dy_relation`  WHERE `dy_relation`.is_deleted = 1;
+ALTER TABLE `dy_relation` DROP `id`;
+ALTER TABLE `dy_relation` ADD `id` int NOT NULL FIRST;
+ALTER TABLE `dy_relation` MODIFY COLUMN `id` int NOT NULL AUTO_INCREMENT,ADD PRIMARY KEY(id);
+COMMIT;

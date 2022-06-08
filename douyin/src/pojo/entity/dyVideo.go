@@ -30,6 +30,7 @@ func (v DyVideo) NewVoVideo() *vo.Video {
 		CoverUrl:      v.CoverUrl.String,
 		FavoriteCount: v.FavoriteCount.Int64,
 		CommentCount:  v.CommentCount.Int64,
+		Title:         v.Title.String,
 	}
 }
 

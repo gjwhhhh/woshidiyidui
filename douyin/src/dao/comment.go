@@ -3,6 +3,7 @@ package dao
 import (
 	"douyin/src/global"
 	"douyin/src/pkg/errcode"
+	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
 	"time"
 )
@@ -60,10 +61,10 @@ loop:
 
 	// 拼装数据为vo并加入列表
 	for rows.Next() {
-		var comment commentValid
-		var commentator userValid
+		var comment entity.DyComment
+		var commentator entity.DyUser
 		if err = rows.Scan(&comment.Id, &comment.Content, &comment.CreateDate, &commentator.Id,
-			&commentator.Name, &commentator.FollowCount, &commentator.FollowerCount); err != nil {
+			&commentator.Username, &commentator.FollowCount, &commentator.FollowerCount); err != nil {
 			return comments, err
 		}
 		voUser := commentator.NewVoUser()
@@ -77,6 +78,43 @@ loop:
 
 		// 如当前用户的关注列表中有此评论者，则评论者的IsFollow为true
 		_, voUser.IsFollow = followerIdMap[voUser.Id]
+		voComment.User = *voUser
+		comments = append(comments, *voComment)
+	}
+	return comments, nil
+}
+
+// FindCommentListByVideoWithoutLogin 未登录查看评论列表
+func FindCommentListByVideoWithoutLogin(videoId int64) ([]vo.Comment, error) {
+
+	// 从数据库查询评论列表
+	db := global.DBEngine
+	rows, err := db.DB().Query(FindCommentListByVideoIdAndUIdSQL, videoId)
+	comments := make([]vo.Comment, 0)
+	if err != nil {
+		return comments, err
+	}
+	defer rows.Close()
+
+	// 拼装数据为vo并加入列表
+	for rows.Next() {
+		var comment entity.DyComment
+		var commentator entity.DyUser
+		if err = rows.Scan(&comment.Id, &comment.Content, &comment.CreateDate, &commentator.Id,
+			&commentator.Username, &commentator.FollowCount, &commentator.FollowerCount); err != nil {
+			return comments, err
+		}
+
+		voUser := commentator.NewVoUser()
+		if voUser == nil {
+			continue
+		}
+
+		voComment := comment.NewVoComment()
+		if voComment == nil {
+			continue
+		}
+
 		voComment.User = *voUser
 		comments = append(comments, *voComment)
 	}

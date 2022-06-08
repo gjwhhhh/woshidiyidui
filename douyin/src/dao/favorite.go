@@ -3,6 +3,7 @@ package dao
 import (
 	"douyin/src/global"
 	"douyin/src/pkg/errcode"
+	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
 	"time"
 )
@@ -65,22 +66,26 @@ loop:
 
 	// 读取数据并判断是否关注
 	for rows.Next() {
-		var video videoValid
-		var user userValid
-		if err = rows.Scan(&video.Id, &video.PlayUrl, &video.CoverUrl, &video.FavoriteCount, &video.CommentCount, &user.Id, &user.Name, &user.FollowCount, &user.FollowerCount); err != nil {
+		var video entity.DyVideo
+		var user entity.DyUser
+		if err = rows.Scan(&video.Id, &video.PlayUrl, &video.CoverUrl, &video.FavoriteCount, &video.CommentCount, &user.Id, &user.Username, &user.FollowCount, &user.FollowerCount); err != nil {
 			return videos, err
 		}
+
 		voUser := user.NewVoUser()
 		if voUser == nil {
 			continue
 		}
+
 		voVideo := video.NewVoVideo()
 		if voVideo == nil {
 			continue
 		}
+
 		voVideo.IsFavorite = true
 		_, voUser.IsFollow = followerIdMap[voUser.Id]
-		video.Author = user
+		voVideo.Author = *voUser
+
 		videos = append(videos, *voVideo)
 	}
 

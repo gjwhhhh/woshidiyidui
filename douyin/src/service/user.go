@@ -30,7 +30,7 @@ func Register(username, password string) (int64, string, error) {
 	// 判断用户是否存在
 	_, exist := dao.IsExistByUName(username)
 	if exist {
-		return 0, "", errors.New("user already exist")
+		return 0, "", errors.New(fmt.Sprintf("用户[%s]已经存在", username))
 	}
 
 	// 新增用户

@@ -100,12 +100,34 @@ loop:
 		}
 
 		voUser := user.NewVoUser()
-		// TODO 对是否关注
+		// TODO 对自己是否关注
 		if user.Id.Int64 == curUserId {
 			voUser.IsFollow = true
 		} else {
 			_, voUser.IsFollow = followerIdMap[user.Id.Int64]
 		}
+		followerList = append(followerList, *voUser)
+	}
+	return followerList, nil
+}
+
+// FindFollowerListWithoutLogin 未登录查询某个用户粉丝列表
+func FindFollowerListWithoutLogin(userId int64) ([]vo.User, error) {
+	var db = global.DBEngine
+	rows, err := db.DB().Query(FindFollowerListByUidSql, userId, 0)
+	followerList := make([]vo.User, 0)
+	if err != nil {
+		return followerList, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user entity.DyUser
+		if err = rows.Scan(&user.Id, &user.Username, &user.FollowerCount, &user.FollowCount); err != nil {
+			return followerList, err
+		}
+
+		voUser := user.NewVoUser()
 		followerList = append(followerList, *voUser)
 	}
 	return followerList, nil
@@ -168,12 +190,34 @@ loop:
 		}
 
 		voUser := user.NewVoUser()
-		// TODO 对是否关注
+		// TODO 对自己是否关注
 		if user.Id.Int64 == curUserId {
 			voUser.IsFollow = true
 		} else {
 			_, voUser.IsFollow = followerIdMap[user.Id.Int64]
 		}
+		followList = append(followList, *voUser)
+	}
+	return followList, nil
+}
+
+// FindFollowListWithoutLogin 未登录查询某个用户关注的人的列表
+func FindFollowListWithoutLogin(userId int64) ([]vo.User, error) {
+	var db = global.DBEngine
+	rows, err := db.DB().Query(FindFollowListByUidSql, userId, 0)
+	followList := make([]vo.User, 0)
+	if err != nil {
+		return followList, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user entity.DyUser
+		if err = rows.Scan(&user.Id, &user.Username, &user.FollowerCount, &user.FollowCount); err != nil {
+			return followList, err
+		}
+
+		voUser := user.NewVoUser()
 		followList = append(followList, *voUser)
 	}
 	return followList, nil

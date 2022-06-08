@@ -19,7 +19,7 @@ func CommentAction(videoId, userId int64, actionType int32, c *gin.Context) (*vo
 		commentStr := c.Query("comment_text")
 		// comment校验
 		if commentStr == "" {
-			return nil, errors.New("comment cannot be empty")
+			return nil, errors.New("评论不能为空")
 		}
 		comment, err := dao.AddComment(videoId, userId, commentStr)
 		if err != nil {
@@ -33,24 +33,29 @@ func CommentAction(videoId, userId int64, actionType int32, c *gin.Context) (*vo
 		return comment, nil
 	} else if actionType == DeleteCommentOpt {
 		commentId, err := strconv.ParseInt(c.Query("comment_id"), 10, 64)
-
 		if err != nil {
-			return nil, errors.New("illegal param, parsing comment_id err")
+			return nil, err
 		}
 		return nil, dao.DeleteComment(commentId, videoId)
 
 	}
-	return nil, errors.New(fmt.Sprintf("unsupported operation, action_type = %d", actionType))
+	return nil, errors.New(fmt.Sprintf("未知操作, action_type = %d", actionType))
 }
 
 // CommentList 评论列表
 func CommentList(videoId, userId int64) ([]vo.Comment, error) {
-	comments, err := dao.FindCommentListByVideoIdAndUId(videoId, userId)
+	var comments []vo.Comment
+	var err error
+	if userId == 0 {
+		comments, err = dao.FindCommentListByVideoWithoutLogin(videoId)
+	} else {
+		comments, err = dao.FindCommentListByVideoIdAndUId(videoId, userId)
+	}
 	if err != nil {
 		return nil, err
 	}
 	for i, comment := range comments {
-		time, _ := util.ParseRFC3339TimeToVoTime(comment.CreateDate)
+		time, _ := util.ParseDbTimeToVoTime(comment.CreateDate)
 		if err != nil {
 			return nil, err
 		}
