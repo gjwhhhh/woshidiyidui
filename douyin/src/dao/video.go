@@ -32,7 +32,8 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 			isFavorite = true
 		}
 		videoTmp := vo.Video{
-			Id: dyVideoList[i].Id,
+			Id:    dyVideoList[i].Id,
+			Title: dyVideoList[i].Title,
 			Author: vo.User{
 				Id:            userTmp.Id,
 				Name:          userTmp.Name,
@@ -69,7 +70,8 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 		userTmp := GetUserInfo(dyVideoList[i].UserId)
 		//db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
 		videoTmp := vo.Video{
-			Id: dyVideoList[i].Id,
+			Id:    dyVideoList[i].Id,
+			Title: dyVideoList[i].Title,
 			Author: vo.User{
 				Id:            userTmp.Id,
 				Name:          userTmp.Name,
