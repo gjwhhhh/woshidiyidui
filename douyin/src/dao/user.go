@@ -25,7 +25,7 @@ func IsExist(username, password string) (int64, bool) {
 	}
 
 	var dyUser entity.DyUser
-	err := db.Where("username=? and password=? and is_deleted = ?", username, password, 0).Find(&dyUser).Error
+	err := db.Where("username=? and password=? and is_deleted = ?", username, password, 0).First(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
 		return 0, false
 	}
@@ -42,7 +42,7 @@ func IsExist(username, password string) (int64, bool) {
 func IsExistByUName(username string) (int64, bool) {
 	var db = global.DBEngine
 	var dy entity.DyUser
-	err := db.Where("username = ? and is_deleted = ?", username, 0).Find(&dy).Error
+	err := db.Where("username = ? and is_deleted = ?", username, 0).First(&dy).Error
 	if err == gorm.ErrRecordNotFound {
 		return 0, false
 	}
@@ -59,67 +59,44 @@ func GetUserInfo(curUserId int64) *vo.User {
 	cacheUser := UserCacheById.Get(curUserId)
 	// 包含，直接返回
 	if cacheUser != nil {
-		return &vo.User{
-			Id:            cacheUser.Id.Int64,
-			Name:          cacheUser.Username.String,
-			FollowerCount: cacheUser.FollowCount.Int64,
-			FollowCount:   cacheUser.FollowCount.Int64,
-		}
+		return cacheUser.NewVoUser()
 	}
 
 	var dyUser entity.DyUser
-	err := db.Where("id = ? and is_deleted = ?", curUserId, 0).Find(&dyUser).Error
+	err := db.Where("id = ? and is_deleted = ?", curUserId, 0).First(&dyUser).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil
 	}
 
 	// 添加到缓存中
 	UserCacheById.Put(dyUser.Id.Int64, &dyUser)
-	return &vo.User{
-		Id:            dyUser.Id.Int64,
-		Name:          dyUser.Username.String,
-		FollowerCount: dyUser.FollowCount.Int64,
-		FollowCount:   dyUser.FollowCount.Int64,
-	}
+	return dyUser.NewVoUser()
 }
 
 // GetOtherUserInfo 获取其它用户的信息
 // bool 返回用户是否存在
-func GetOtherUserInfo(curUserId, otherUserId int64) (*vo.User, bool) {
+func GetOtherUserInfo(curUserId, otherUserId int64) (*vo.User, error) {
 	var db = global.DBEngine
-	//获取用户信息
-	var dyUser entity.DyUser
-	err := db.Where("id = ? and is_deleted = ?", otherUserId, 0).Find(&dyUser).Error
-	if err == gorm.ErrRecordNotFound {
-		return nil, false
-	}
-	var isFol = false
-	//获取是否关注信息
-	err = db.Where("follower_id = ? and following_id = ? and is_deleted = ?", curUserId, otherUserId, 0).Find(&entity.DyRelation{}).Error
-	if err == gorm.ErrRecordNotFound {
-		isFol = false
-	} else {
-		isFol = true
-	}
-	var voUser = &vo.User{
-		Id:            dyUser.Id.Int64,
-		Name:          dyUser.Username.String,
-		FollowerCount: dyUser.FollowCount.Int64,
-		FollowCount:   dyUser.FollowCount.Int64,
-		IsFollow:      isFol,
-	}
 
-	return voUser, true
+	//使用缓存获取用户信息
+	voUser := GetUserInfo(otherUserId)
+
+	//获取是否关注信息
+	var count int
+	err := db.Table("dy_relation").Where("follower_id = ? and following_id = ? and is_deleted = ?", curUserId, otherUserId, 0).Count(&count).Error
+	if err != nil {
+		return nil, err
+	}
+	voUser.IsFollow = count != 0
+	return voUser, nil
 }
 
 // AddUser 新增用户
 func AddUser(username, password string) (int64, error) {
 	var db = global.DBEngine
-	name := &sql.NullString{String: username, Valid: true}
-	pwd := &sql.NullString{String: password, Valid: true}
 	user := entity.DyUser{
-		Username: *name,
-		Password: *pwd,
+		Username: sql.NullString{String: username, Valid: true},
+		Password: sql.NullString{String: password, Valid: true},
 	}
 	err := db.Create(&user).Error
 	if err != nil {

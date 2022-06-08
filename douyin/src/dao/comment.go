@@ -23,11 +23,12 @@ WHERE
 
 // FindCommentListByVideoIdAndUId 评论列表
 func FindCommentListByVideoIdAndUId(videoId, userId int64) ([]vo.Comment, error) {
-	// 首先查询当前用户的关注列表
 	followerIdsChan := make(chan map[int64]struct{})
 	errorChan := make(chan error)
 	var followerIdMap map[int64]struct{}
+
 	timer := time.NewTimer(time.Second)
+	// 首先查询当前用户的关注列表
 	go findFollowerIdsByFollowing(followerIdsChan, errorChan, userId)
 
 	// 从数据库查询评论列表
@@ -73,6 +74,7 @@ loop:
 		if voComment == nil {
 			continue
 		}
+
 		// 如当前用户的关注列表中有此评论者，则评论者的IsFollow为true
 		_, voUser.IsFollow = followerIdMap[voUser.Id]
 		voComment.User = *voUser

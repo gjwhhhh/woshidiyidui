@@ -2,6 +2,7 @@ package entity
 
 import (
 	"database/sql"
+	"douyin/src/pojo/vo"
 	"time"
 )
 
@@ -16,6 +17,20 @@ type DyVideo struct {
 	CreateDate    time.Time      `gorm:"column:create_date;default:CURRENT_TIMESTAMP;NOT NULL" json:"create_date"` // 创建时间
 	UpdateDate    time.Time      `gorm:"column:update_date;default:CURRENT_TIMESTAMP;NOT NULL" json:"update_date"` // 更新时间
 	IsDeleted     sql.NullInt32  `gorm:"column:is_deleted;default:0" json:"is_deleted"`
+}
+
+// NewVoVideo 根据video获取vo.videoValid
+func (v DyVideo) NewVoVideo() *vo.Video {
+	if !v.Id.Valid || !v.PlayUrl.Valid || !v.CoverUrl.Valid || !v.FavoriteCount.Valid || !v.CommentCount.Valid {
+		return nil
+	}
+	return &vo.Video{
+		Id:            v.Id.Int64,
+		PlayUrl:       v.PlayUrl.String,
+		CoverUrl:      v.CoverUrl.String,
+		FavoriteCount: v.FavoriteCount.Int64,
+		CommentCount:  v.CommentCount.Int64,
+	}
 }
 
 func (m *DyVideo) TableName() string {

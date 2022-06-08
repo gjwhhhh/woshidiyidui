@@ -11,13 +11,13 @@ const FollowOpt = 1   // 关注
 const UnFollowOpt = 2 // 取消关注
 
 // FollowerList 查询某个用户粉丝列表
-func FollowerList(userid int64) ([]vo.User, error) {
-	return dao.FindFollowerList(userid)
+func FollowerList(curUserId, userId int64) ([]vo.User, error) {
+	return dao.FindFollowerList(curUserId, userId)
 }
 
 // FollowList 查询某个用户关注的人的列表
-func FollowList(userid int64) ([]vo.User, error) {
-	return dao.FindFollowList(userid)
+func FollowList(curUserId, userId int64) ([]vo.User, error) {
+	return dao.FindFollowList(curUserId, userId)
 }
 
 // RelationAction 关系操作

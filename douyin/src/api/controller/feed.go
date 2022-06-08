@@ -25,11 +25,9 @@ func Feed(c *gin.Context) {
 	if token != "" {
 		claims, err := util.ParseToken(token)
 		if err != nil {
-			c.JSON(http.StatusOK, UserResponse{
-				Response: Response{
-					StatusCode: 1,
-					StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
-				},
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("Parse token err:%s", err.Error()),
 			})
 			return
 		}
@@ -37,11 +35,9 @@ func Feed(c *gin.Context) {
 		var exist bool
 		userId, exist = dao.IsExist(claims.Username, claims.Password)
 		if !exist {
-			c.JSON(http.StatusOK, UserResponse{
-				Response: Response{
-					StatusCode: 1,
-					StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
-				},
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
 			})
 			return
 		}
@@ -53,11 +49,9 @@ func Feed(c *gin.Context) {
 		latestTime = util.GetTimeUnixNow()
 	} else {
 		if err != nil {
-			c.JSON(http.StatusOK, UserResponse{
-				Response: Response{
-					StatusCode: 1,
-					StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
-				},
+			c.JSON(http.StatusOK, Response{
+				StatusCode: 1,
+				StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
 			})
 			return
 		}
@@ -67,11 +61,9 @@ func Feed(c *gin.Context) {
 	feed, nextTime, err := service.Feed(latestTime, userId)
 
 	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
-			},
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.RequestFail.Msg(), err.Error()),
 		})
 		return
 	}

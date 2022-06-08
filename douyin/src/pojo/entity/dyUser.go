@@ -2,6 +2,7 @@ package entity
 
 import (
 	"database/sql"
+	"douyin/src/pojo/vo"
 	"time"
 )
 
@@ -14,6 +15,18 @@ type DyUser struct {
 	CreateDate    time.Time      `gorm:"column:create_date;default:CURRENT_TIMESTAMP;NOT NULL" json:"create_date"` // 创建时间
 	UpdateDate    time.Time      `gorm:"column:update_date;default:CURRENT_TIMESTAMP;NOT NULL" json:"update_date"` // 更新时间
 	IsDeleted     sql.NullInt32  `gorm:"column:is_deleted;default:0" json:"is_deleted"`
+}
+
+func (u DyUser) NewVoUser() *vo.User {
+	if !u.Id.Valid || !u.Username.Valid || !u.FollowCount.Valid || !u.FollowerCount.Valid {
+		return nil
+	}
+	return &vo.User{
+		Id:            u.Id.Int64,
+		Name:          u.Username.String,
+		FollowCount:   u.FollowCount.Int64,
+		FollowerCount: u.FollowerCount.Int64,
+	}
 }
 
 func (m *DyUser) TableName() string {

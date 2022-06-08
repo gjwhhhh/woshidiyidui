@@ -22,25 +22,29 @@ FROM
 	LEFT JOIN dy_video ON dy_favorite.video_id = dy_video.id
 	LEFT JOIN dy_user ON dy_video.user_id = dy_user.id
 WHERE
-	dy_favorite.user_id = ?`
+	dy_favorite.user_id = ? AND dy_favorite.is_deleted = ?`
 
 // FindFavoriteVideoListByUId 根据用户id获取点赞的视频
 func FindFavoriteVideoListByUId(uid int64) ([]vo.Video, error) {
 	followerIdsChan := make(chan map[int64]struct{})
 	errorChan := make(chan error)
 	var followerIdMap map[int64]struct{}
+
 	// 定义查询超时时间
 	timer := time.NewTimer(time.Second)
+
 	// 启用协程查询用户的关注列表
 	go findFollowerIdsByFollowing(followerIdsChan, errorChan, uid)
+
 	// 根据用户id获取点赞的视频
 	db := global.DBEngine
-	rows, err := db.DB().Query(FindFavoriteVideoListByUidSql, uid)
+	rows, err := db.DB().Query(FindFavoriteVideoListByUidSql, uid, 0)
 	videos := make([]vo.Video, 0)
 	if err != nil {
 		return videos, err
 	}
 	defer rows.Close()
+
 	// 等待协程结果，超时直接返回Timeout
 loop:
 	for {
@@ -58,6 +62,7 @@ loop:
 			}
 		}
 	}
+
 	// 读取数据并判断是否关注
 	for rows.Next() {
 		var video videoValid
@@ -78,5 +83,6 @@ loop:
 		video.Author = user
 		videos = append(videos, *voVideo)
 	}
+
 	return videos, nil
 }

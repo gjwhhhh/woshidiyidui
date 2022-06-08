@@ -23,7 +23,7 @@ func RelationAction(c *gin.Context) {
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
 		})
 		return
@@ -33,7 +33,7 @@ func RelationAction(c *gin.Context) {
 	userId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
 		})
 		return
@@ -54,7 +54,7 @@ func RelationAction(c *gin.Context) {
 	err = service.RelationAction(userId, toUserId, int32(actionType))
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, %s", errcode.OptionFail.Msg(), err.Error()),
 		})
 		return
@@ -70,17 +70,17 @@ func FollowList(c *gin.Context) {
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
 		})
 		return
 	}
 
 	// 判断用户是否存在
-	_, exist := dao.IsExist(claims.Username, claims.Password)
+	curUserId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
 		})
 		return
@@ -97,7 +97,7 @@ func FollowList(c *gin.Context) {
 	}
 
 	// 调用业务
-	follows, err := service.FollowList(userId)
+	follows, err := service.FollowList(curUserId, userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
@@ -121,24 +121,34 @@ func FollowerList(c *gin.Context) {
 	claims, err := util.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, %s", errcode.UnauthorizedTokenError.Msg(), err.Error()),
 		})
 		return
 	}
 
 	// 判断用户是否存在
-	userId, exist := dao.IsExist(claims.Username, claims.Password)
+	curUserId, exist := dao.IsExist(claims.Username, claims.Password)
 	if !exist {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: 0,
+			StatusCode: 1,
 			StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
 		})
 		return
 	}
 
+	// 获取参数
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
+		})
+		return
+	}
+
 	// 调用业务
-	followers, err := service.FollowerList(userId)
+	followers, err := service.FollowerList(curUserId, userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,

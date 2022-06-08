@@ -118,7 +118,7 @@ func PublishList(c *gin.Context) {
 		curUserId, exist = dao.IsExist(claims.Username, claims.Password)
 		if !exist {
 			c.JSON(http.StatusOK, Response{
-				StatusCode: 0,
+				StatusCode: 1,
 				StatusMsg:  fmt.Sprintf("%s, no user corresponding to token", errcode.UnauthorizedTokenError.Msg()),
 			})
 			return

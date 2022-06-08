@@ -91,7 +91,7 @@ func FavoriteList(c *gin.Context) {
 		return
 	}
 
-	// 调用业务
+	// 调用业务 TODO 传入curUserId
 	videos, err := service.FavoriteList(userId)
 	if err != nil {
 		c.JSON(http.StatusOK, Response{

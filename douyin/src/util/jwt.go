@@ -23,7 +23,7 @@ func GenerateToken(username, password string) (string, error) {
 
 	//设置token有效时间
 	nowTime := time.Now()
-	expireTime := nowTime.Add(3 * time.Hour)
+	expireTime := nowTime.Add(3 * 24 * time.Hour)
 
 	claims := Claims{
 		Username: username,
