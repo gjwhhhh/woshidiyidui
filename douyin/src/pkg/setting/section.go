@@ -35,6 +35,14 @@ type JWTSettingS struct {
 	Secret string
 }
 
+type OssSettingS struct {
+	Endpoint          string
+	AccessKeyId       string
+	AccessKeySecret   string
+	DefaultBucketName string
+	UrlPathPrefix     string
+}
+
 func (s *Setting) ReadSection(k string, v interface{}) error {
 	err := s.vp.UnmarshalKey(k, v)
 	if err != nil {

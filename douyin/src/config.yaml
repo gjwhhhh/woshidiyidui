@@ -13,8 +13,8 @@ App:
 Database:
   DBType: mysql
   Username: root  # 填写你的数据库账号
-  Password: xxxxx  # 填写你的数据库密码
-  Host: xxxxxxxx:3306
+  Password: 123456  # 填写你的数据库密码
+  Host: 127.0.0.1:3306
   DBName: douyin_service
   TablePrefix: douyin_
   Charset: utf8
@@ -24,3 +24,9 @@ Database:
   FeedPageSize: 30
 JWT:
   Secret: 666666
+Oss:
+  Endpoint: https://oss-cn-hangzhou.aliyuncs.com
+  AccessKeyId: LTAI5tKB8DQcNebbWEsTwMn8
+  AccessKeySecret: mqDn2frxVNx4EedzBIBUHIGa3i5Vew
+  DefaultBucketName: view6view-douyin
+  UrlPathPrefix: https://view6view-douyin.oss-cn-hangzhou.aliyuncs.com/

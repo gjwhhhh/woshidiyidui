@@ -1,6 +1,7 @@
 package oss
 
 import (
+	"douyin/src/global"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"log"
 	"sync"
@@ -17,9 +18,9 @@ func GetClientInstance() (*oss.Client, error) {
 		lock.Lock()
 		if clientSingleton == nil {
 			clientSingleton, err = oss.New(
-				Endpoint,
-				AccessKeyId,
-				AccessKeySecret)
+				global.OssSetting.Endpoint,
+				global.OssSetting.AccessKeyId,
+				global.OssSetting.AccessKeySecret)
 		}
 		lock.Unlock()
 	}
@@ -37,7 +38,7 @@ func GetDefaultBucketInstance() (*oss.Bucket, error) {
 	if defaultBucketSingleton == nil {
 		lock.Lock()
 		if defaultBucketSingleton == nil {
-			defaultBucketSingleton, err = client.Bucket(BucketName)
+			defaultBucketSingleton, err = client.Bucket(global.OssSetting.DefaultBucketName)
 		}
 		lock.Unlock()
 	}

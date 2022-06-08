@@ -2,6 +2,7 @@ package oss
 
 import (
 	"bufio"
+	"douyin/src/global"
 	"encoding/base64"
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -26,7 +27,7 @@ func UploadVideo(fileName string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	return videoUrl, fmt.Sprintf("%s%s", UrlPathPrefix, coverUrl), nil
+	return videoUrl, fmt.Sprintf("%s%s", global.OssSetting.UrlPathPrefix, coverUrl), nil
 }
 
 // NetFileDump 网络文件转存
@@ -93,7 +94,7 @@ func fileUpLoad(fileName string, bucket *oss.Bucket) (string, error) {
 		return "", err
 	}
 	// 返回url
-	return fmt.Sprintf("%s%s", UrlPathPrefix, urlPath), nil
+	return fmt.Sprintf("%s%s", global.OssSetting.UrlPathPrefix, urlPath), nil
 }
 
 // checkLocalFile 检查本地文件是否正常
