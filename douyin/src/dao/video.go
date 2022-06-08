@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"database/sql"
 	"douyin/src/global"
 	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
@@ -14,7 +15,7 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 	var db = global.DBEngine
 	sqlTimeFormat := util.ParseTimeUnixToDbTime(latestTime)
 	//查询视频list
-	err := db.Where("create_date<?", sqlTimeFormat).Order("create_date DESC").Limit(pageSize).Find(&dyVideoList).Error
+	err := db.Where("create_date < ? and is_deleted = ?", sqlTimeFormat, 0).Order("create_date DESC").Limit(pageSize).Find(&dyVideoList).Error
 	if err != nil {
 		return make([]vo.Video, 0), err
 	}
@@ -23,17 +24,17 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 	var videoVoList = make([]vo.Video, 0)
 	for i := 0; i < len(dyVideoList); i++ {
 		// 通过缓存查询
-		userTmp := GetUserInfo(dyVideoList[i].UserId)
+		userTmp := GetUserInfo(dyVideoList[i].UserId.Int64)
 		//db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
 		var dyFavorite entity.DyFavorite
-		err := db.Where("user_id=? AND video_id=?", userId, dyVideoList[i].Id).Find(&dyFavorite).Error
+		err := db.Where("user_id = ? and video_id = ? and is_deleted = ?", userId, dyVideoList[i].Id, 0).Find(&dyFavorite).Error
 		var isFavorite = false
 		if err != gorm.ErrRecordNotFound {
 			isFavorite = true
 		}
 		videoTmp := vo.Video{
-			Id:    dyVideoList[i].Id,
-			Title: dyVideoList[i].Title,
+			Id:    dyVideoList[i].Id.Int64,
+			Title: dyVideoList[i].Title.String,
 			Author: vo.User{
 				Id:            userTmp.Id,
 				Name:          userTmp.Name,
@@ -41,10 +42,10 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      false,
 			},
-			PlayUrl:       dyVideoList[i].PlayUrl,
-			CoverUrl:      dyVideoList[i].CoverUrl,
-			FavoriteCount: int64(dyVideoList[i].FavoriteCount),
-			CommentCount:  int64(dyVideoList[i].CommentCount),
+			PlayUrl:       dyVideoList[i].PlayUrl.String,
+			CoverUrl:      dyVideoList[i].CoverUrl.String,
+			FavoriteCount: dyVideoList[i].FavoriteCount.Int64,
+			CommentCount:  dyVideoList[i].CommentCount.Int64,
 			IsFavorite:    isFavorite,
 		}
 		videoVoList = append(videoVoList, videoTmp)
@@ -58,7 +59,7 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 	var db = global.DBEngine
 	sqlTimeFormat := util.ParseTimeUnixToDbTime(latestTime)
 	//查询视频list
-	err := db.Where("create_date<?", sqlTimeFormat).Order("create_date DESC").Limit(pageSize).Find(&dyVideoList).Error
+	err := db.Where("create_date < ? and is_deleted = ?", sqlTimeFormat, 0).Order("create_date DESC").Limit(pageSize).Find(&dyVideoList).Error
 	if err != nil {
 		return make([]vo.Video, 0), err
 	}
@@ -67,11 +68,11 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 	var videoVoList = make([]vo.Video, 0)
 	for i := 0; i < len(dyVideoList); i++ {
 		// 通过缓存查询
-		userTmp := GetUserInfo(dyVideoList[i].UserId)
+		userTmp := GetUserInfo(dyVideoList[i].UserId.Int64)
 		//db.Where("id=?", dyVideoList[i].UserId).Find(&userTmp)
 		videoTmp := vo.Video{
-			Id:    dyVideoList[i].Id,
-			Title: dyVideoList[i].Title,
+			Id:    dyVideoList[i].Id.Int64,
+			Title: dyVideoList[i].Title.String,
 			Author: vo.User{
 				Id:            userTmp.Id,
 				Name:          userTmp.Name,
@@ -79,10 +80,10 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      false,
 			},
-			PlayUrl:       dyVideoList[i].PlayUrl,
-			CoverUrl:      dyVideoList[i].CoverUrl,
-			FavoriteCount: int64(dyVideoList[i].FavoriteCount),
-			CommentCount:  int64(dyVideoList[i].CommentCount),
+			PlayUrl:       dyVideoList[i].PlayUrl.String,
+			CoverUrl:      dyVideoList[i].CoverUrl.String,
+			FavoriteCount: dyVideoList[i].FavoriteCount.Int64,
+			CommentCount:  dyVideoList[i].CommentCount.Int64,
 			IsFavorite:    false,
 		}
 		videoVoList = append(videoVoList, videoTmp)
@@ -94,20 +95,21 @@ func BatchVideoByTime(latestTime int64, pageSize int) ([]vo.Video, error) {
 func GetVideoTimeById(userId int64) (int64, error) {
 	var dyVideo entity.DyVideo
 	var db = global.DBEngine
-	err := db.Where("id=?", userId).Find(&dyVideo).Error
+	err := db.Where("id = ? and is_deleted = ?", userId, 0).Find(&dyVideo).Error
 	if err != nil {
 		return 0, err
 	}
-	return dyVideo.CreateDate.Unix(), nil
+	// 返回毫秒
+	return dyVideo.CreateDate.UnixMilli(), nil
 }
 
 // AddVideo 用户新增视频
 func AddVideo(userId int64, videoUrl, coverUrl, title string) error {
 	dyVideo := entity.DyVideo{
-		UserId:   userId,
-		PlayUrl:  videoUrl,
-		CoverUrl: coverUrl,
-		Title:    title,
+		UserId:   sql.NullInt64{Int64: userId},
+		PlayUrl:  sql.NullString{String: videoUrl},
+		CoverUrl: sql.NullString{String: coverUrl},
+		Title:    sql.NullString{String: title},
 	}
 	var db = global.DBEngine
 	err := db.Create(&dyVideo).Error
@@ -121,7 +123,7 @@ func AddVideo(userId int64, videoUrl, coverUrl, title string) error {
 func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 	var dyVideoList []entity.DyVideo
 	var db = global.DBEngine
-	err := db.Where("user_id=?", userId).Find(&dyVideoList).Error
+	err := db.Where("user_id = ? and is_deleted = ?", userId, 0).Find(&dyVideoList).Error
 	if err != nil {
 		return make([]vo.Video, 0), err
 	}
@@ -129,11 +131,11 @@ func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 	//遍历视频，然后循环中查询用户的信息，指定是否点赞
 	for _, video := range dyVideoList {
 		// 通过缓存查询
-		userTmp := GetUserInfo(video.UserId)
+		userTmp := GetUserInfo(video.UserId.Int64)
 		//db.Where("id=?", video.UserId).Find(&userTmp)
 
 		videoVoTmp := vo.Video{
-			Id: video.Id,
+			Id: video.Id.Int64,
 			Author: vo.User{
 				Id:            userTmp.Id,
 				Name:          userTmp.Name,
@@ -141,10 +143,10 @@ func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      false,
 			},
-			PlayUrl:       video.PlayUrl,
-			CoverUrl:      video.CoverUrl,
-			FavoriteCount: int64(video.FavoriteCount),
-			CommentCount:  int64(video.CommentCount),
+			PlayUrl:       video.PlayUrl.String,
+			CoverUrl:      video.CoverUrl.String,
+			FavoriteCount: video.FavoriteCount.Int64,
+			CommentCount:  video.CommentCount.Int64,
 			IsFavorite:    false,
 		}
 		videoVoList = append(videoVoList, videoVoTmp)
@@ -156,29 +158,29 @@ func BatchVideoByUId(userId int64) ([]vo.Video, error) {
 func BatchVideoByUIdAndOtherUId(curUserId, otherUId int64) ([]vo.Video, error) {
 	var dyVideoList []entity.DyVideo
 	var db = global.DBEngine
-	err := db.Where("user_id=?", otherUId).Find(&dyVideoList).Error
+	err := db.Where("user_id = ? and is_deleted = ?", otherUId, 0).Find(&dyVideoList).Error
 	if err != nil {
 		return make([]vo.Video, 0), err
 	}
 	var videoVoList []vo.Video
 	for _, video := range dyVideoList {
 		// 通过缓存查询
-		userTmp := GetUserInfo(video.UserId)
+		userTmp := GetUserInfo(video.UserId.Int64)
 		//db.Where("id=?", video.UserId).Find(&userTmp)
 		var dyRelation entity.DyRelation
-		err := db.Where("follower_id=? AND following_id=?", curUserId, otherUId).Find(&dyRelation).Error
+		err := db.Where("follower_id = ? and following_id = ? and is_deleted = ?", curUserId, otherUId, 0).Find(&dyRelation).Error
 		var isFollow = false
 		if err != gorm.ErrRecordNotFound {
 			isFollow = true
 		}
 		var dyFavorite entity.DyFavorite
-		err2 := db.Where("user_id=? AND video_id=?", curUserId, video.Id).Find(&dyFavorite).Error
+		err2 := db.Where("user_id = ? and video_id = ? and is_deleted = ?", curUserId, video.Id, 0).Find(&dyFavorite).Error
 		var isFavorite = false
 		if err2 != gorm.ErrRecordNotFound {
 			isFavorite = true
 		}
 		videoVoTmp := vo.Video{
-			Id: video.Id,
+			Id: video.Id.Int64,
 			Author: vo.User{
 				Id:            userTmp.Id,
 				Name:          userTmp.Name,
@@ -186,10 +188,10 @@ func BatchVideoByUIdAndOtherUId(curUserId, otherUId int64) ([]vo.Video, error) {
 				FollowerCount: int64(userTmp.FollowerCount),
 				IsFollow:      isFollow,
 			},
-			PlayUrl:       video.PlayUrl,
-			CoverUrl:      video.CoverUrl,
-			FavoriteCount: int64(video.FavoriteCount),
-			CommentCount:  int64(video.CommentCount),
+			PlayUrl:       video.PlayUrl.String,
+			CoverUrl:      video.CoverUrl.String,
+			FavoriteCount: video.FavoriteCount.Int64,
+			CommentCount:  video.CommentCount.Int64,
 			IsFavorite:    isFavorite,
 		}
 		videoVoList = append(videoVoList, videoVoTmp)

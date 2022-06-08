@@ -10,7 +10,7 @@ import (
 func FindFollowerIdsByFollowing(uid int64) ([]int64, error) {
 	db := global.DBEngine
 	var followerIds []int64
-	if err := db.Table("dy_relation").Where("follower_id = ? and isdeleted = ?", uid, 0).Find(&followerIds).Error; err == nil || err == gorm.ErrRecordNotFound {
+	if err := db.Table("dy_relation").Where("follower_id = ? and is_deleted = ?", uid, 0).Find(&followerIds).Error; err == nil || err == gorm.ErrRecordNotFound {
 		return followerIds, nil
 	} else {
 		return followerIds, err
