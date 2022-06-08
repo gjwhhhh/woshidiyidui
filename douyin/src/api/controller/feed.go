@@ -49,14 +49,18 @@ func Feed(c *gin.Context) {
 
 	// 校验参数
 	latestTime, err := strconv.ParseInt(c.Query("latest_time"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{
-				StatusCode: 1,
-				StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
-			},
-		})
-		return
+	if latestTime == 0 {
+		latestTime = util.GetTimeUnixNow()
+	} else {
+		if err != nil {
+			c.JSON(http.StatusOK, UserResponse{
+				Response: Response{
+					StatusCode: 1,
+					StatusMsg:  fmt.Sprintf("%s, %s", errcode.InvalidParams.Msg(), err.Error()),
+				},
+			})
+			return
+		}
 	}
 
 	// 调用service获取视频流

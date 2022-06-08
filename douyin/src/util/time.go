@@ -24,8 +24,13 @@ func ParseRFC3339TimeToVoTime(timeStr string) (string, error) {
 	return parse.Format(VoTimeFormat), nil
 }
 
-// ParseTimeUnixToDbTime 将时间戳转换为数据库时间格式
+// ParseTimeUnixToDbTime 将时间戳(精确到毫秒)转换为数据库时间格式
 func ParseTimeUnixToDbTime(latestTime int64) string {
 	time := time.UnixMilli(latestTime)
 	return time.Format(DbTimeFormat2)
+}
+
+// GetTimeUnixNow 获取当前时间,毫秒
+func GetTimeUnixNow() int64 {
+	return time.Now().Unix()
 }
