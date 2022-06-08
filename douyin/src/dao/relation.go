@@ -32,13 +32,64 @@ func findFollowerIdsByFollowing(followerIdsChan chan<- map[int64]struct{}, error
 }
 
 // TODO dao完成
+const FindFollowerListByUidSql = `SELECT
+	dy_user.id,
+	dy_user.username,
+	dy_user.follow_count,
+	dy_user.follower_count 
+FROM
+	dy_relation
+	LEFT JOIN dy_user ON  dy_relation.follower_id = dy_user.id
+WHERE
+	dy_relation.following_id = ?`
 
 // FindFollowerList 查询某个用户粉丝列表
 func FindFollowerList(userid int64) ([]vo.User, error) {
-	return []vo.User{}, nil
+	var db = global.DBEngine
+	rows, err := db.DB().Query(FindFollowerListByUidSql, userid)
+	followerList := make([]vo.User, 0)
+	if err != nil {
+		return followerList, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user vo.User
+		if err = rows.Scan(&user.Id, &user.Name, &user.FollowerCount, &user.FollowCount); err != nil {
+			return followerList, err
+		}
+		followerList = append(followerList, user)
+	}
+	return followerList, nil
+
 }
+
+const FindFollowListByUidSql = `SELECT
+	dy_user.id,
+	dy_user.username,
+	dy_user.follow_count,
+	dy_user.follower_count 
+FROM
+	dy_relation
+	LEFT JOIN dy_user ON  dy_relation.following_id = dy_user.id
+WHERE
+	dy_relation.follower_id = ?`
 
 // FindFollowList 查询某个用户关注的人的列表
 func FindFollowList(userid int64) ([]vo.User, error) {
-	return []vo.User{}, nil
+	var db = global.DBEngine
+	rows, err := db.DB().Query(FindFollowListByUidSql, userid)
+	followerList := make([]vo.User, 0)
+	if err != nil {
+		return followerList, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user vo.User
+		if err = rows.Scan(&user.Id, &user.Name, &user.FollowerCount, &user.FollowCount); err != nil {
+			return followerList, err
+		}
+		followerList = append(followerList, user)
+	}
+	return followerList, nil
+
 }
