@@ -34,8 +34,6 @@ func RelationAction(userId, toUserId int64, actionType int32) error {
 	if userId == toUserId {
 		return errors.New("不能关注自己")
 	}
-	lock.Lock()
-	defer lock.Unlock()
 	if actionType == FollowOpt {
 		err := dao.Follow(userId, toUserId)
 		if err != nil {
@@ -49,7 +47,9 @@ func RelationAction(userId, toUserId int64, actionType int32) error {
 	} else {
 		return errors.New(fmt.Sprintf("未知操作, action_type = %d", actionType))
 	}
-	// 删除缓存
+	// 删除缓存，保证并发安全
+	lock.Lock()
+	defer lock.Unlock()
 	dao.UserCacheById.Delete(userId)
 	dao.UserCacheById.Delete(toUserId)
 	return nil
