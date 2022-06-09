@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"database/sql"
 	"douyin/src/global"
 	"douyin/src/pkg/errcode"
 	"douyin/src/pojo/entity"
@@ -13,15 +12,8 @@ import (
 // FindFollowerIdsByUId 查询 uid 关注人id集合
 func FindFollowerIdsByUId(uId int64) ([]int64, error) {
 	db := global.DBEngine
-	type Res struct {
-		FollowingId sql.NullInt64 `gorm:"column:following_id;default:0" json:"following_id"`
-	}
-	var temp []Res
-	if err := db.Table("dy_relation").Where("follower_id = ? and is_deleted = ?", uId, 0).Select("following_id").Scan(&temp).Error; err == nil || err == gorm.ErrRecordNotFound {
-		res := make([]int64, len(temp))
-		for i, r := range temp {
-			res[i] = r.FollowingId.Int64
-		}
+	var res []int64
+	if err := db.Table("dy_relation").Where("follower_id = ? and is_deleted = ?", uId, 0).Pluck("following_id", &res).Error; err == nil || err == gorm.ErrRecordNotFound {
 		return res, nil
 	} else {
 		return make([]int64, 0), err

@@ -11,22 +11,28 @@ import (
 	"time"
 )
 
-// BatchVideoByTimeAndUId 通过时间和用户id获取视频流，需要指定用户是否被关注
+// BatchVideoByTimeAndUId 通过时间和用户id获取视频流，需要指定视频作者是否被关注，视频是否点赞
 func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video, error) {
-	// 定义通道
+	// 定义通道（用户关注关系）
 	followerIdsChan := make(chan map[int64]struct{})
-	errorChan := make(chan error)
+	errorChan1 := make(chan error)
 	var followerIdMap map[int64]struct{}
+	// 定义通道（视频点赞关注关系）
+	videoIdsChan := make(chan map[int64]struct{})
+	errorChan2 := make(chan error)
+	var videoIdMap map[int64]struct{}
 
-	// 定义查询超时时间
 	timer := time.NewTimer(time.Second)
 
 	// 启用协程查询用户的关注列表
-	go findFollowerIdsByFollowing(followerIdsChan, errorChan, userId)
+	go findFollowerIdsByFollowing(followerIdsChan, errorChan1, userId)
+
+	// 启用协程查询用户的点赞视频列表
+	go findFavoriteVideoIdsByUId(videoIdsChan, errorChan2, userId)
 
 	var db = global.DBEngine
 	sqlTimeFormat := util.ParseTimeUnixToDbTime(latestTime)
-	//查询视频list
+	// 查询视频list
 	rows, err := db.Table("dy_video").Select([]string{"id", "user_id", "play_url", "cover_url", "favorite_count", "comment_count", "title"}).
 		Where("create_date < ? and is_deleted = ?", sqlTimeFormat, 0).
 		Order("create_date DESC").
@@ -39,13 +45,29 @@ func BatchVideoByTimeAndUId(latestTime, userId int64, pageSize int) ([]vo.Video,
 	defer rows.Close()
 
 	// 等待协程结果，超时直接返回Timeout
-loop:
+loop1:
 	for {
 		select {
-		case err = <-errorChan:
+		case err = <-errorChan1:
 			return videoVoList, err
 		case followerIdMap = <-followerIdsChan:
-			break loop
+			break loop1
+		default:
+			select {
+			case <-timer.C:
+				return videoVoList, errcode.TimeOutFail
+			default:
+				continue
+			}
+		}
+	}
+loop2:
+	for {
+		select {
+		case err = <-errorChan2:
+			return videoVoList, err
+		case videoIdMap = <-videoIdsChan:
+			break loop2
 		default:
 			select {
 			case <-timer.C:
@@ -62,11 +84,14 @@ loop:
 		if err = rows.Scan(&video.Id, &video.UserId, &video.PlayUrl, &video.CoverUrl, &video.FavoriteCount, &video.CommentCount, &video.Title); err != nil {
 			return videoVoList, err
 		}
-
-		voVideo := video.NewVoVideo()
+		// 封装作者信息
 		voUser := GetUserInfo(video.UserId.Int64)
 		_, voUser.IsFollow = followerIdMap[video.UserId.Int64]
+
+		// 封装视频信息
+		voVideo := video.NewVoVideo()
 		voVideo.Author = *voUser
+		_, voVideo.IsFavorite = videoIdMap[video.Id.Int64]
 
 		videoVoList = append(videoVoList, *voVideo)
 	}

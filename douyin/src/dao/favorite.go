@@ -5,6 +5,7 @@ import (
 	"douyin/src/pkg/errcode"
 	"douyin/src/pojo/entity"
 	"douyin/src/pojo/vo"
+	"github.com/jinzhu/gorm"
 	"time"
 )
 
@@ -90,4 +91,29 @@ loop:
 	}
 
 	return videos, nil
+}
+
+// 查询 uid 点赞视频id集合
+func findFavoriteVideoIdsByUId(videoIdsChan chan<- map[int64]struct{}, errorChan chan<- error, uid int64) {
+	videoIds, err := FindFavoriteVideoIdsByUId(uid)
+	if err != nil {
+		errorChan <- err
+		return
+	}
+	videoIdMap := make(map[int64]struct{})
+	for _, video := range videoIds {
+		videoIdMap[video] = struct{}{}
+	}
+	videoIdsChan <- videoIdMap
+}
+
+// FindFavoriteVideoIdsByUId 查询 uid 点赞视频id集合
+func FindFavoriteVideoIdsByUId(uId int64) ([]int64, error) {
+	db := global.DBEngine
+	var res []int64
+	if err := db.Table("dy_favorite").Where("user_id = ? and is_deleted = ?", uId, 0).Pluck("video_id", &res).Error; err == nil || err == gorm.ErrRecordNotFound {
+		return res, nil
+	} else {
+		return make([]int64, 0), err
+	}
 }
