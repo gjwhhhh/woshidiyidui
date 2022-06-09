@@ -47,6 +47,8 @@ func (this *UserLruCache) Head() *entity.DyUser {
 }
 
 func (this *UserLruCache) Get(key int64) *entity.DyUser {
+	lock.Lock()
+	defer lock.Unlock()
 	if _, ok := this.cache[key]; !ok {
 		return nil
 	}
@@ -72,6 +74,16 @@ func (this *UserLruCache) Put(key int64, value *entity.DyUser) {
 		node := this.cache[key]
 		node.v = value
 		this.moveToHead(node)
+	}
+}
+
+func (this *UserLruCache) Delete(key int64) {
+	lock.Lock()
+	defer lock.Unlock()
+	if _, ok := this.cache[key]; ok {
+		node := this.cache[key]
+		this.removeNode(node)
+		delete(this.cache, key)
 	}
 }
 

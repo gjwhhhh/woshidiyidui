@@ -5,10 +5,13 @@ import (
 	"douyin/src/pojo/vo"
 	"fmt"
 	"github.com/pkg/errors"
+	"sync"
 )
 
 const FollowOpt = 1   // 关注
 const UnFollowOpt = 2 // 取消关注
+
+var lock sync.Mutex
 
 // FollowerList 查询某个用户粉丝列表
 func FollowerList(curUserId, userId int64) ([]vo.User, error) {
@@ -31,10 +34,23 @@ func RelationAction(userId, toUserId int64, actionType int32) error {
 	if userId == toUserId {
 		return errors.New("不能关注自己")
 	}
+	lock.Lock()
+	defer lock.Unlock()
 	if actionType == FollowOpt {
-		return dao.Follow(userId, toUserId)
+		err := dao.Follow(userId, toUserId)
+		if err != nil {
+			return err
+		}
 	} else if actionType == UnFollowOpt {
-		return dao.UnFollow(userId, toUserId)
+		err := dao.UnFollow(userId, toUserId)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New(fmt.Sprintf("未知操作, action_type = %d", actionType))
 	}
-	return errors.New(fmt.Sprintf("未知操作, action_type = %d", actionType))
+	// 删除缓存
+	dao.UserCacheById.Delete(userId)
+	dao.UserCacheById.Delete(toUserId)
+	return nil
 }
