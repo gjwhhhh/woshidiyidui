@@ -2,6 +2,7 @@ package api
 
 import (
 	"douyin/src/api/controller"
+	"douyin/src/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,4 +30,9 @@ func InitRouter(r *gin.Engine) {
 	apiRouter.POST("/relation/action/", controller.RelationAction)
 	apiRouter.GET("/relation/follow/list/", controller.FollowList)
 	apiRouter.GET("/relation/follower/list/", controller.FollowerList)
+
+	jwtRouter := r.Group("/douyin")
+	jwtRouter.Use(middleware.JWT())
+	// 需要校验c.Query 接口可以直接写在下方
+	// jwtRouter.GET("/relation/follower/list/", controller.FollowerList)
 }
